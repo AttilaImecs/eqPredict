@@ -1,0 +1,155 @@
+<svg viewBox="0 0 780 1010" width="780" height="1010" xmlns="http://www.w3.org/2000/svg" role="img" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif">
+<title>Stock dataset pipeline architecture and run order</title>
+<desc>Six scripts run in sequence: build_universe, fetch_sec_fundamentals, fetch_prices, fetch_financials (optional), backfill_quarters, and build_excel, each writing CSV artifacts that feed the final Excel workbook.</desc>
+
+<defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--text-secondary, #6b6b6b)"/>
+  </marker>
+  <marker id="ard" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--text-tertiary, #9a9a9a)"/>
+  </marker>
+</defs>
+
+<style>
+  /* Self-contained defaults so the file renders standalone in a browser,
+     while still inheriting host theme variables where they are defined. */
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f7f5;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b6b;
+    --text-tertiary: #9a9a9a;
+    --border-primary: #d8d8d4;
+    --border-secondary: #e0e0e0;
+  }
+  svg { background: var(--bg-primary, #fff); }
+  .stepnum { font-size:11px; font-weight:700; fill:var(--bg-primary,#fff); }
+  .stitle  { font-size:13.5px; font-weight:650; fill:var(--text-primary,#1a1a1a); }
+  .ssub    { font-size:11px; fill:var(--text-secondary,#6b6b6b); }
+  .fname   { font-size:11.5px; font-weight:550; fill:var(--text-primary,#1a1a1a); }
+  .fnote   { font-size:10px; fill:var(--text-tertiary,#9a9a9a); }
+  .hdr     { font-size:10.5px; font-weight:700; fill:var(--text-tertiary,#9a9a9a); letter-spacing:0.08em; }
+  .lg      { font-size:10.5px; fill:var(--text-secondary,#6b6b6b); }
+</style>
+
+<!-- column headers -->
+<text class="hdr" x="34" y="26">SCRIPTS  ·  RUN IN THIS ORDER</text>
+<text class="hdr" x="430" y="26">ARTIFACTS WRITTEN</text>
+
+<!-- external sources -->
+<rect x="34" y="40" width="300" height="46" rx="7" fill="none" stroke="var(--border-secondary,#e0e0e0)" stroke-width="1" stroke-dasharray="4 3"/>
+<text class="ssub" x="48" y="60">Wikipedia · Nasdaq Trader · SEC tickers</text>
+<text class="ssub" x="48" y="76">raw.githubusercontent (Fortune 500)</text>
+
+<!-- spine -->
+<line x1="60" y1="86" x2="60" y2="905" stroke="var(--border-secondary,#e0e0e0)" stroke-width="1.5"/>
+
+<!-- ===== STEP 1 ===== -->
+<line x1="60" y1="86" x2="60" y2="112" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="34" y="118" width="300" height="56" rx="8" fill="var(--bg-secondary,#f7f7f5)" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<circle cx="56" cy="146" r="11" fill="var(--text-primary,#1a1a1a)"/>
+<text class="stepnum" x="56" y="150" text-anchor="middle">1</text>
+<text class="stitle" x="76" y="142">build_universe.py</text>
+<text class="ssub" x="76" y="159">3,727 tickers, CIK for 3,717</text>
+<line x1="334" y1="146" x2="424" y2="146" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.3" marker-end="url(#ar)"/>
+<rect x="430" y="130" width="316" height="32" rx="5" fill="none" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<text class="fname" x="442" y="150">universe.csv</text>
+
+<!-- ===== STEP 2 ===== -->
+<line x1="60" y1="174" x2="60" y2="204" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="34" y="210" width="300" height="70" rx="8" fill="var(--bg-secondary,#f7f7f5)" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<circle cx="56" cy="238" r="11" fill="var(--text-primary,#1a1a1a)"/>
+<text class="stepnum" x="56" y="242" text-anchor="middle">2</text>
+<text class="stitle" x="76" y="234">fetch_sec_fundamentals.py</text>
+<text class="ssub" x="76" y="251">SEC XBRL · 8 req/s · 6-year window</text>
+<text class="ssub" x="76" y="267">the complex one — see notes below</text>
+<line x1="334" y1="238" x2="424" y2="238" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.3" marker-end="url(#ar)"/>
+<rect x="430" y="206" width="316" height="32" rx="5" fill="none" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<text class="fname" x="442" y="226">data_quarterly.csv</text>
+<text class="fnote" x="592" y="226">64,197 rows</text>
+<rect x="430" y="244" width="316" height="32" rx="5" fill="none" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<text class="fname" x="442" y="264">data_shares.csv</text>
+<text class="fnote" x="592" y="264">2,728 tickers</text>
+
+<!-- ===== STEP 3 ===== -->
+<line x1="60" y1="280" x2="60" y2="310" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="34" y="316" width="300" height="70" rx="8" fill="var(--bg-secondary,#f7f7f5)" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<circle cx="56" cy="344" r="11" fill="var(--text-primary,#1a1a1a)"/>
+<text class="stepnum" x="56" y="348" text-anchor="middle">3</text>
+<text class="stitle" x="76" y="340">fetch_prices.py</text>
+<text class="ssub" x="76" y="357">Yahoo batch · 150 tickers per call</text>
+<text class="ssub" x="76" y="373">market cap computed, not fetched</text>
+<line x1="334" y1="344" x2="424" y2="344" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.3" marker-end="url(#ar)"/>
+<rect x="430" y="312" width="316" height="32" rx="5" fill="none" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<text class="fname" x="442" y="332">data_monthly.csv</text>
+<text class="fnote" x="592" y="332">186,286 rows</text>
+<rect x="430" y="350" width="316" height="32" rx="5" fill="none" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<text class="fname" x="442" y="370">data_snapshot.csv</text>
+<text class="fnote" x="592" y="370">3,727 rows</text>
+
+<!-- dashed dependency: shares + EPS feed step 3 -->
+<path d="M760,260 L768,260 L768,344 L752,344" fill="none" stroke="var(--text-tertiary,#9a9a9a)" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ard)"/>
+<text class="fnote" x="700" y="300" text-anchor="middle">reads</text>
+
+<!-- ===== STEP 4 ===== -->
+<line x1="60" y1="386" x2="60" y2="416" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="34" y="422" width="300" height="56" rx="8" fill="none" stroke="var(--border-primary,#d8d8d4)" stroke-width="1" stroke-dasharray="5 3"/>
+<circle cx="56" cy="450" r="11" fill="none" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5"/>
+<text class="stepnum" x="56" y="454" text-anchor="middle" fill="var(--text-secondary,#6b6b6b)">4</text>
+<text class="stitle" x="76" y="446">fetch_financials.py  <tspan class="ssub">optional</tspan></text>
+<text class="ssub" x="76" y="463">per-ticker yf quarters · rate-limited</text>
+<line x1="334" y1="450" x2="424" y2="450" stroke="var(--text-tertiary,#9a9a9a)" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#ard)"/>
+<rect x="430" y="434" width="316" height="32" rx="5" fill="none" stroke="var(--border-secondary,#e0e0e0)" stroke-width="1" stroke-dasharray="4 3"/>
+<text class="fname" x="442" y="454">data_quarterly_yf.csv</text>
+
+<!-- ===== STEP 5 ===== -->
+<line x1="60" y1="478" x2="60" y2="508" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="34" y="514" width="300" height="56" rx="8" fill="var(--bg-secondary,#f7f7f5)" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<circle cx="56" cy="542" r="11" fill="var(--text-primary,#1a1a1a)"/>
+<text class="stepnum" x="56" y="546" text-anchor="middle">5</text>
+<text class="stitle" x="76" y="538">backfill_quarters.py</text>
+<text class="ssub" x="76" y="555">patches SEC's publishing lag</text>
+<path d="M334,542 L380,542 L380,246 L424,246" fill="none" stroke="var(--text-tertiary,#9a9a9a)" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ard)"/>
+<text class="fnote" x="392" y="410" text-anchor="middle" transform="rotate(-90 392 410)">merges into</text>
+
+<!-- ===== STEP 6 ===== -->
+<line x1="60" y1="570" x2="60" y2="600" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="34" y="606" width="300" height="70" rx="8" fill="var(--bg-secondary,#f7f7f5)" stroke="var(--border-primary,#d8d8d4)" stroke-width="1"/>
+<circle cx="56" cy="634" r="11" fill="var(--text-primary,#1a1a1a)"/>
+<text class="stepnum" x="56" y="638" text-anchor="middle">6</text>
+<text class="stitle" x="76" y="630">build_excel.py</text>
+<text class="ssub" x="76" y="647">annual totals + FY2026E projection</text>
+<text class="ssub" x="76" y="663">pivot to one row per ticker</text>
+
+<!-- all artifacts feed build_excel -->
+<path d="M746,146 L764,146 L764,634 L340,634" fill="none" stroke="var(--text-tertiary,#9a9a9a)" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ard)"/>
+<path d="M746,366 L756,366 L756,626 L340,626" fill="none" stroke="var(--text-tertiary,#9a9a9a)" stroke-width="1.1" stroke-dasharray="4 3"/>
+
+<!-- output -->
+<line x1="60" y1="676" x2="60" y2="712" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="34" y="718" width="712" height="62" rx="8" fill="var(--bg-secondary,#f7f7f5)" stroke="var(--text-primary,#1a1a1a)" stroke-width="1.6"/>
+<text class="stitle" x="52" y="744" font-size="14.5">Fortune500_SP500_NASDAQ_Financials_5Y.xlsx</text>
+<text class="ssub" x="52" y="763">3,727 rows × 974 columns · 17.5 MB · sheets: README · Snapshot · Data · Universe · Coverage</text>
+
+<!-- notes on step 2 internals -->
+<rect x="34" y="802" width="712" height="112" rx="7" fill="none" stroke="var(--border-secondary,#e0e0e0)" stroke-width="1"/>
+<text class="hdr" x="48" y="822">INSIDE STEP 2 — WHERE THE HARD PARTS LIVE</text>
+<text class="ssub" x="48" y="843">extract_revenue()</text>
+<text class="fnote" x="200" y="843">banks · lessors · excise filers each need a different rule</text>
+<text class="ssub" x="48" y="861">derive_q4()</text>
+<text class="fnote" x="200" y="861">Q4 = FY − (Q1+Q2+Q3); picks the restatement-consistent year</text>
+<text class="ssub" x="48" y="879">collapse_near_duplicates()</text>
+<text class="fnote" x="200" y="879">merges dual-tagged period ends within 12 days</text>
+<text class="ssub" x="48" y="897">drop_impossible_revenue()</text>
+<text class="fnote" x="200" y="897">a quarter cannot exceed its own fiscal year</text>
+
+<!-- legend -->
+<line x1="40" y1="946" x2="70" y2="946" stroke="var(--text-secondary,#6b6b6b)" stroke-width="1.5"/>
+<text class="lg" x="78" y="950">execution order</text>
+<line x1="190" y1="946" x2="220" y2="946" stroke="var(--text-tertiary,#9a9a9a)" stroke-width="1.1" stroke-dasharray="4 3"/>
+<text class="lg" x="228" y="950">reads / merges into</text>
+<rect x="350" y="939" width="26" height="14" rx="4" fill="none" stroke="var(--border-primary,#d8d8d4)" stroke-dasharray="5 3"/>
+<text class="lg" x="384" y="950">optional step</text>
+<text class="lg" x="520" y="950">Steps 2 and 3 are resumable — safe to interrupt</text>
+</svg>

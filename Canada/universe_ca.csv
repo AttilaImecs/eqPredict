@@ -1,0 +1,221 @@
+ticker,yahoo,company,sector,industry,cik,cik_match,cross_listed
+VNP,VNP.TO,5N Plus Inc.,Materials,Chemicals,,,False
+ABRA,ABRA.TO,AbraSilver Resource Corp.,Materials,Metals & Mining,,,False
+AAV,AAV.TO,Advantage Energy Ltd.,Energy,Oil & Gas Exploration and Production,,,False
+ARE,ARE.TO,Aecon Group Inc.,Industrials,Construction & Engineering,0001309167,name,True
+AEM,AEM.TO,Agnico Eagle Mines Limited,Materials,Metals & Mining,0000002809,name,True
+AC,AC.TO,Air Canada,Industrials,Transportation,,,False
+AGI,AGI.TO,Alamos Gold Inc.,Materials,Metals & Mining,0001178819,name,True
+AQN,AQN.TO,Algonquin Power & Utilities Corp.,Utilities,Regulated Utilities,0001174169,name,True
+ATD,ATD.TO,Alimentation Couche-Tard Inc.,Consumer Discretionary,Specialty Retail,,,False
+AAUC,AAUC.TO,Allied Gold Corporation,Materials,Metals & Mining,0001993344,name,True
+AP.UN,AP-UN.TO,Allied Properties Real Estate Investment Trust,Real Estate,REITs,,,False
+ALA,ALA.TO,AltaGas Ltd.,Energy,Oil & Gas Storage/Transport,,,False
+AIF,AIF.TO,Altus Group Limited,Real Estate,Real Estate,,,False
+USA,USA.TO,Americas Gold And Silver Corporation,Materials,Metals & Mining,,,False
+ARX,ARX.TO,ARC Resources Ltd.,Energy,Oil & Gas Exploration and Production,,,False
+ARIS,ARIS.TO,Aris Mining Corporation,Materials,Metals & Mining,0001964504,name,True
+ATZ,ATZ.TO,Aritzia Inc.,Consumer Discretionary,Specialty Retail,,,False
+ACO.X,ACO-X.TO,ATCO Ltd.,Utilities,Regulated Utilities,,,False
+ATH,ATH.TO,Athabasca Oil Corporation,Energy,Oil & Gas Exploration and Production,,,False
+ATRL,ATRL.TO,AtkinsRéalis Group Inc.,Industrials,Construction & Engineering,,,False
+ATS,ATS.TO,ATS Corporation,Industrials,Industrial Products,0001394832,ticker+name,True
+ASM,ASM.TO,Avino Silver & Gold Mines Ltd.,Materials,Metals & Mining,0000316888,name,True
+AYA,AYA.TO,Aya Gold & Silver Inc.,Materials,Metals & Mining,0001826836,name,True
+BTO,BTO.TO,B2Gold Corp.,Materials,Metals & Mining,0001429937,name,True
+BDGI,BDGI.TO,Badger Infrastructure Solutions Ltd.,Industrials,Construction & Engineering,,,False
+BMO,BMO.TO,Bank of Montreal,Financials,Banks,0000927971,ticker+name,True
+BNS,BNS.TO,Bank of Nova Scotia,Financials,Banks,0000009631,name,True
+ABX,ABX.TO,Barrick Gold Corporation,Materials,Metals & Mining,,,False
+BHC,BHC.TO,Bausch Health Companies Inc.,Healthcare,Pharmaceuticals,0000885590,name,True
+BTE,BTE.TO,Baytex Energy Corp.,Energy,Oil & Gas Exploration and Production,0001279495,name,True
+BCE,BCE.TO,BCE Inc.,Communication Services,Telecommunication Services,0000718940,name,True
+BIR,BIR.TO,Birchcliff Energy Ltd.,Energy,Oil & Gas Exploration and Production,,,False
+BDT,BDT.TO,Bird Construction Inc.,Industrials,Construction & Engineering,,,False
+BB,BB.TO,BlackBerry Limited,Information Technology,Software,0001070235,name,True
+BEI.UN,BEI-UN.TO,Boardwalk Real Estate Investment Trust,Real Estate,REITs,,,False
+BBD.B,BBD-B.TO,Bombardier Inc.,Industrials,Aerospace & Defense,,,False
+BLX,BLX.TO,Boralex Inc.,Energy,Renewable Energy Producers,0000890541,ticker+name,True
+BYD,BYD.TO,Boyd Group Services Inc.,Consumer Discretionary,Personal Services,0002091467,name,True
+BAM,BAM.TO,Brookfield Asset Management Ltd.,Financials,Asset Management,0001937926,name,True
+BBUC,BBUC.TO,Brookfield Business Corporation,Industrials,Conglomerates,0001654795,name,True
+BN,BN.TO,Brookfield Corporation,Financials,Asset Management,0001001085,ticker+name,True
+BIP.UN,BIP-UN.TO,Brookfield Infrastructure Partners L.P.,Utilities,Regulated Utilities,0001406234,name,True
+BEP.UN,BEP-UN.TO,Brookfield Renewable Partners L.P.,Energy,Renewable Energy Producers,0001533232,name,True
+DOO,DOO.TO,BRP Inc.,Consumer Discretionary,Vehicles & Parts,0001748797,name,True
+CAE,CAE.TO,CAE Inc.,Industrials,Aerospace & Defense,0001173382,name,True
+CCO,CCO.TO,Cameco Corporation,Energy,Other Energy Sources,0001009001,name,True
+CAR.UN,CAR-UN.TO,Canadian Apartment Properties Real Estate Investment Trust,Real Estate,REITs,,,False
+CM,CM.TO,Canadian Imperial Bank of Commerce,Financials,Banks,0001045520,ticker+name,True
+CNR,CNR.TO,Canadian National Railway Company,Industrials,Transportation,0000016868,name,True
+CNQ,CNQ.TO,Canadian Natural Resources Limited,Energy,Oil & Gas Exploration and Production,0001017413,name,True
+CP,CP.TO,Canadian Pacific Kansas City Limited,Industrials,Transportation,0000016875,ticker+name,True
+CTC.A,CTC-A.TO,Canadian Tire Corporation Limited,Consumer Discretionary,Specialty Retail,,,False
+CU,CU.TO,Canadian Utilities Limited,Utilities,Regulated Utilities,,,False
+CPX,CPX.TO,Capital Power Corporation,Utilities,Independent Power Producers,,,False
+CS,CS.TO,Capstone Copper Corp.,Materials,Metals & Mining,,,False
+CJT,CJT.TO,Cargojet Inc.,Industrials,Transportation,,,False
+CCL.B,CCL-B.TO,CCL Industries Inc.,Consumer Discretionary,Containers & Packaging,,,False
+CLS,CLS.TO,Celestica Inc.,Information Technology,Hardware & Equipment,0001030894,name,True
+CVE,CVE.TO,Cenovus Energy Inc.,Energy,Integrated Oil & Gas,0001475260,name,True
+CG,CG.TO,Centerra Gold Inc.,Materials,Metals & Mining,0001854640,name,True
+CEU,CEU.TO,CES Energy Solutions Corp.,Energy,Oil & Gas Equipment & Services,,,False
+GIB.A,GIB-A.TO,CGI Inc.,Information Technology,Software,0001061574,name,True
+CSH.UN,CSH-UN.TO,Chartwell Retirement Residences,Real Estate,Real Estate,,,False
+CHP.UN,CHP-UN.TO,Choice Properties Real Estate Investment Trust,Real Estate,REITs,,,False
+CCA,CCA.TO,Cogeco Communications Inc.,Communication Services,Telecommunication Services,,,False
+CIGI,CIGI.TO,Colliers International Group Inc.,Real Estate,Real Estate,0000913353,name,True
+CSU,CSU.TO,Constellation Software Inc.,Information Technology,Software,,,False
+CRR.UN,CRR-UN.TO,Crombie Real Estate Investment Trust,Real Estate,REITs,,,False
+CRT.UN,CRT-UN.TO,CT Real Estate Investment Trust,Real Estate,REITs,,,False
+CURA,CURA.TO,"Curaleaf Holdings, Inc.",Healthcare,Pharmaceuticals,0001756770,name,True
+DFY,DFY.TO,Definity Financial Corporation,Financials,Insurance,,,False
+DML,DML.TO,Denison Mines Corp.,Energy,Other Energy Sources,0001063259,name,True
+DSG,DSG.TO,Descartes Systems Group Inc.,Information Technology,Software,0001050140,name,True
+DSV,DSV.TO,Discovery Silver Corp.,Materials,Metals & Mining,,,False
+DOL,DOL.TO,Dollarama Inc.,Consumer Staples,Retailers - Staples,,,False
+DIR.UN,DIR-UN.TO,Dream Industrial Real Estate Investment Trust,Real Estate,REITs,,,False
+DPM,DPM.TO,Dundee Precious Metals Inc.,Materials,Metals & Mining,,,False
+ELD,ELD.TO,Eldorado Gold Corporation,Materials,Metals & Mining,,,False
+EFN,EFN.TO,Element Fleet Management Corp.,Industrials,Business Services,,,False
+EMA,EMA.TO,Emera Incorporated,Utilities,Regulated Utilities,0001127248,name,True
+EMP.A,EMP-A.TO,Empire Company Limited,Consumer Staples,Retailers - Staples,,,False
+ENB,ENB.TO,Enbridge Inc.,Energy,Oil & Gas Storage/Transport,0000895728,name,True
+EDR,EDR.TO,Endeavour Silver Corp.,Materials,Metals & Mining,0001277866,name,True
+EFR,EFR.TO,Energy Fuels Inc.,Energy,Other Energy Sources,0001385849,name,True
+EQB,EQB.TO,EQB Inc.,Financials,Banks,,,False
+EFX,EFX.TO,Equifax Inc.,Industrials,Consulting Services,0000033185,name,True
+EQX,EQX.TO,Equinox Gold Corp.,Materials,Metals & Mining,0001756607,name,True
+ERO,ERO.TO,Ero Copper Corp.,Materials,Metals & Mining,0001853860,name,True
+EIF,EIF.TO,Exchange Income Corporation,Industrials,Transportation,,,False
+FFH,FFH.TO,Fairfax Financial Holdings Limited,Financials,Insurance,,,False
+FTT,FTT.TO,Finning International Inc.,Industrials,Industrial Distribution,,,False
+FCR.UN,FCR-UN.TO,First Capital Real Estate Investment Trust,Real Estate,REITs,,,False
+AG,AG.TO,First Majestic Silver Corp.,Materials,Metals & Mining,0001308648,name,True
+FM,FM.TO,First Quantum Minerals Ltd.,Materials,Metals & Mining,,,False
+FSV,FSV.TO,FirstService Corporation,Real Estate,Real Estate,0001637810,name,True
+FTS,FTS.TO,Fortis Inc.,Utilities,Regulated Utilities,0001666175,name,True
+FVI,FVI.TO,Fortuna Mining Corp.,Materials,Metals & Mining,0001341335,name,True
+FNV,FNV.TO,Franco-Nevada Corporation,Materials,Metals & Mining,0001456346,name,True
+FRU,FRU.TO,Freehold Royalties Ltd.,Energy,Oil & Gas Exploration and Production,,,False
+GMIN,GMIN.TO,G Mining Ventures Corp.,Materials,Metals & Mining,,,False
+WN,WN.TO,George Weston Limited,Consumer Staples,Retailers - Staples,,,False
+GFL,GFL.TO,GFL Environmental Inc.,Industrials,Waste Management,0001780232,name,True
+GEI,GEI.TO,Gibson Energy Inc.,Energy,Oil & Gas Storage/Transport,,,False
+GIL,GIL.TO,Gildan Activewear Inc.,Consumer Discretionary,Apparel & Accessories,0001061894,name,True
+GSY,GSY.TO,goeasy Ltd.,Financials,Consumer Finance,,,False
+GRT.UN,GRT-UN.TO,Granite Real Estate Investment Trust,Real Estate,REITs,0001564538,name,True
+GWO,GWO.TO,Great-West Lifeco Inc.,Financials,Insurance,0000850918,name,True
+HR.UN,HR-UN.TO,H&R Real Estate Investment Trust,Real Estate,REITs,,,False
+HWX,HWX.TO,Headwater Exploration Inc.,Energy,Oil & Gas Exploration and Production,,,False
+HBM,HBM.TO,Hudbay Minerals Inc.,Materials,Metals & Mining,0001322422,name,True
+H,H.TO,Hydro One Limited,Utilities,Regulated Utilities,0001712356,name,True
+IAU,IAU.TO,I-80 Gold Corp.,Materials,Metals & Mining,0001853962,name,True
+IAG,IAG.TO,iA Financial Corporation Inc.,Financials,Insurance,,,False
+IMG,IMG.TO,Iamgold Corporation,Materials,Metals & Mining,0001203464,name,True
+IGM,IGM.TO,IGM Financial Inc.,Financials,Asset Management,,,False
+IMO,IMO.TO,Imperial Oil Limited,Energy,Integrated Oil & Gas,0000049938,name,True
+IFC,IFC.TO,Intact Financial Corporation,Financials,Insurance,,,False
+IPCO,IPCO.TO,International Petroleum Corporation,Energy,Oil & Gas Exploration and Production,,,False
+IIP.UN,IIP-UN.TO,InterRent Real Estate Investment Trust,Real Estate,REITs,,,False
+IVN,IVN.TO,Ivanhoe Mines Ltd.,Materials,Metals & Mining,,,False
+JWEL,JWEL.TO,Jamieson Wellness Inc.,Consumer Staples,Consumer Packaged Goods,,,False
+KNT,KNT.TO,K92 Mining Inc.,Materials,Metals & Mining,,,False
+KEL,KEL.TO,Kelt Exploration Ltd.,Energy,Oil & Gas Exploration and Production,,,False
+KEY,KEY.TO,Keyera Corp.,Energy,Oil & Gas Storage/Transport,,,False
+KMP.UN,KMP-UN.TO,Killam Apartment Real Estate Investment Trust,Real Estate,REITs,,,False
+KXS,KXS.TO,Kinaxis Inc.,Information Technology,Software,,,False
+K,K.TO,Kinross Gold Corporation,Materials,Metals & Mining,0000701818,name,True
+LIF,LIF.TO,Labrador Iron Ore Royalty Corporation,Materials,Steel,,,False
+LB,LB.TO,Laurentian Bank of Canada,Financials,Banks,,,False
+LSPD,LSPD.TO,Lightspeed Commerce Inc.,Information Technology,Software,0001823306,name,True
+LNR,LNR.TO,Linamar Corporation,Consumer Discretionary,Vehicles & Parts,,,False
+LAC,LAC.TO,Lithium Americas Corp.,Materials,Metals & Mining,0001966983,name,True
+L,L.TO,Loblaw Companies Limited,Consumer Staples,Retailers - Staples,,,False
+LUG,LUG.TO,Lundin Gold Inc.,Materials,Metals & Mining,,,False
+LUN,LUN.TO,Lundin Mining Corporation,Materials,Metals & Mining,,,False
+MG,MG.TO,Magna International Inc.,Consumer Discretionary,Vehicles & Parts,0000749098,name,True
+MFC,MFC.TO,Manulife Financial Corporation,Financials,Insurance,0001086888,name,True
+MFI,MFI.TO,Maple Leaf Foods Inc.,Consumer Staples,Consumer Packaged Goods,,,False
+MDA,MDA.TO,MDA Space Ltd.,Industrials,Aerospace & Defense,0001857047,name,True
+MX,MX.TO,Methanex Corporation,Materials,Chemicals,0000886977,name,True
+MRU,MRU.TO,Metro Inc.,Consumer Staples,Retailers - Staples,,,False
+MAU,MAU.TO,Montage Gold Corp.,Materials,Metals & Mining,0001830918,name,True
+MTL,MTL.TO,Mullen Group Ltd.,Industrials,Transportation,,,False
+NA,NA.TO,National Bank of Canada,Financials,Banks,,,False
+NXE,NXE.TO,NexGen Energy Ltd.,Energy,Other Energy Sources,0001698535,name,True
+NFI,NFI.TO,NFI Group Inc.,Consumer Discretionary,Vehicles & Parts,,,False
+NGEX,NGEX.TO,NGEx Minerals Ltd.,Materials,Metals & Mining,0002044153,name,True
+NWC,NWC.TO,North West Company Inc.,Consumer Staples,Retailers - Staples,,,False
+NPI,NPI.TO,Northland Power Inc.,Energy,Renewable Energy Producers,,,False
+NG,NG.TO,NovaGold Resources Inc.,Materials,Metals & Mining,0001173420,name,True
+NTR,NTR.TO,Nutrien Ltd.,Materials,Agriculture,0001725964,name,True
+OGC,OGC.TO,OceanaGold Corporation,Materials,Metals & Mining,0001487326,name,True
+ONEX,ONEX.TO,Onex Corporation,Financials,Asset Management,,,False
+OTEX,OTEX.TO,Open Text Corporation,Information Technology,Software,0001002638,name,True
+OLA,OLA.TO,Orla Mining Ltd.,Materials,Metals & Mining,0001680056,name,True
+OR,OR.TO,Osisko Gold Royalties Ltd.,Materials,Metals & Mining,0001627272,ticker+name,True
+PAAS,PAAS.TO,Pan American Silver Corp.,Materials,Metals & Mining,0000771992,name,True
+POU,POU.TO,Paramount Resources Ltd.,Energy,Oil & Gas Exploration and Production,,,False
+PXT,PXT.TO,Parex Resources Inc.,Energy,Oil & Gas Exploration and Production,,,False
+PPL,PPL.TO,Pembina Pipeline Corporation,Energy,Oil & Gas Storage/Transport,0001546066,name,True
+PPTA,PPTA.TO,Perpetua Resources Corp.,Materials,Metals & Mining,0001526243,name,True
+PET,PET.TO,Pet Valu Holdings Ltd.,Consumer Discretionary,Specialty Retail,,,False
+PEY,PEY.TO,Peyto Exploration & Development Corp.,Energy,Oil & Gas Exploration and Production,,,False
+POW,POW.TO,Power Corporation of Canada,Financials,Insurance,,,False
+PSK,PSK.TO,PrairieSky Royalty Ltd.,Energy,Oil & Gas Exploration and Production,,,False
+PBH,PBH.TO,Premium Brands Holdings Corporation,Consumer Staples,Consumer Packaged Goods,0001503812,name,True
+PMZ.UN,PMZ-UN.TO,Primaris Real Estate Investment Trust,Real Estate,REITs,,,False
+QBR.B,QBR-B.TO,Quebecor Inc.,Communication Services,Telecommunication Services,,,False
+RBA,RBA.TO,"RB Global, Inc.",Industrials,Specialty Business Services,0001046102,name,True
+QSR,QSR.TO,Restaurant Brands International Inc.,Consumer Discretionary,Restaurants,0001618756,name,True
+RCH,RCH.TO,Richelieu Hardware Ltd.,Consumer Discretionary,Home and Homeware,,,False
+REI.UN,REI-UN.TO,RioCan Real Estate Investment Trust,Real Estate,REITs,,,False
+RCI.B,RCI-B.TO,Rogers Communications Inc.,Communication Services,Telecommunication Services,0000733099,name,True
+RY,RY.TO,Royal Bank of Canada,Financials,Banks,0001000275,name,True
+RUS,RUS.TO,Russel Metals Inc.,Industrials,Industrial Distribution,,,False
+SAP,SAP.TO,Saputo Inc.,Consumer Staples,Consumer Packaged Goods,,,False
+SEA,SEA.TO,Seabridge Gold Inc.,Materials,Metals & Mining,0001231346,name,True
+SES,SES.TO,Secure Energy Services Inc.,Industrials,Waste Management,,,False
+SHOP,SHOP.TO,Shopify Inc.,Information Technology,Software,0001594805,name,True
+SIA,SIA.TO,Sienna Senior Living Inc.,Healthcare,Healthcare Providers & Services,,,False
+SVM,SVM.TO,Silvercorp Metals Inc.,Materials,Metals & Mining,0001340677,name,True
+SKE,SKE.TO,Skeena Resources Limited,Materials,Metals & Mining,0001713748,name,True
+SRU.UN,SRU-UN.TO,SmartCentres Real Estate Investment Trust,Real Estate,REITs,,,False
+SOBO,SOBO.TO,South Bow Corporation,Energy,Oil & Gas Storage/Transport,0002019061,name,True
+SII,SII.TO,Sprott Inc.,Financials,Asset Management,0001512920,name,True
+SSRM,SSRM.TO,SSR Mining Inc.,Materials,Metals & Mining,0000921638,name,True
+STN,STN.TO,Stantec Inc.,Industrials,Construction & Engineering,0001131383,name,True
+SJ,SJ.TO,Stella-Jones Inc.,Materials,Forest Products,,,False
+SCR,SCR.TO,Strathcona Resources Ltd.,Energy,Oil & Gas Exploration and Production,0002068441,name,True
+SLF,SLF.TO,Sun Life Financial Inc.,Financials,Insurance,0001097362,name,True
+SU,SU.TO,Suncor Energy Inc.,Energy,Integrated Oil & Gas,0000311337,name,True
+SPB,SPB.TO,Superior Plus Corp.,Utilities,Regulated Utilities,,,False
+TVE,TVE.TO,Tamarack Valley Energy Ltd.,Energy,Oil & Gas Exploration and Production,,,False
+TKO,TKO.TO,Taseko Mines Limited,Materials,Metals & Mining,,,False
+TRP,TRP.TO,TC Energy Corporation,Energy,Oil & Gas Storage/Transport,0001232384,name,True
+TECK.B,TECK-B.TO,Teck Resources Limited,Materials,Metals & Mining,0000886986,name,True
+T,T.TO,Telus Corporation,Communication Services,Telecommunication Services,0000868675,name,True
+TVK,TVK.TO,TerraVest Industries Inc.,Energy,Oil & Gas Equipment & Services,,,False
+TFII,TFII.TO,TFI International Inc.,Industrials,Transportation,0001588823,name,True
+TRI,TRI.TO,Thomson Reuters Corporation,Industrials,Business Services,0001075124,ticker+name,True
+X,X.TO,TMX Group Limited,Financials,Capital Markets,,,False
+TPZ,TPZ.TO,Topaz Energy Corp.,Energy,Oil & Gas Storage/Transport,,,False
+TXG,TXG.TO,Torex Gold Resources Inc.,Materials,Metals & Mining,,,False
+TIH,TIH.TO,Toromont Industries Ltd.,Industrials,Industrial Distribution,,,False
+TD,TD.TO,Toronto-Dominion Bank,Financials,Banks,0000947263,name,True
+TOU,TOU.TO,Tourmaline Oil Corp.,Energy,Oil & Gas Exploration and Production,,,False
+TA,TA.TO,TransAlta Corporation,Utilities,Independent Power Producers,0001144800,name,True
+TCL.A,TCL-A.TO,Transcontinental Inc.,Consumer Discretionary,Containers & Packaging,,,False
+TFPM,TFPM.TO,Triple Flag Precious Metals Corp.,Materials,Metals & Mining,0001829726,name,True
+TSU,TSU.TO,Trisura Group Ltd.,Financials,Insurance,,,False
+VET,VET.TO,Vermilion Energy Inc.,Energy,Oil & Gas Exploration and Production,0001293135,name,True
+VITL.UN,VITL-UN.TO,Vital Infrastructure Property Trust.,Real Estate,REITs,,,False
+VZLA,VZLA.TO,Vizsla Silver Corp.,Materials,Metals & Mining,0001796073,name,True
+WCN,WCN.TO,Waste Connections Inc.,Industrials,Waste Management,0001318220,name,True
+WDO,WDO.TO,Wesdome Gold Mines Ltd.,Materials,Metals & Mining,,,False
+WFG,WFG.TO,West Fraser Timber Co. Ltd.,Materials,Forestry,0001402388,name,True
+WPM,WPM.TO,Wheaton Precious Metals Corp.,Materials,Metals & Mining,0001323404,name,True
+WCP,WCP.TO,Whitecap Resources Inc.,Energy,Oil & Gas Exploration and Production,0001472879,name,True
+WPK,WPK.TO,Winpak Ltd.,Consumer Discretionary,Containers & Packaging,,,False
+WSP,WSP.TO,WSP Global Inc.,Industrials,Construction & Engineering,,,False
