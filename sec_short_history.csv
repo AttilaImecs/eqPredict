@@ -1,0 +1,1197 @@
+ticker,company,sector,cik,in_sp500,in_nasdaq,in_fortune500,quarters
+FDXF,FedEx Freight,Industrials,0002082247,True,False,False,0
+HONA,Honeywell Aerospace,Industrials,0002089271,True,True,False,0
+Q,Qnity Electronics,Information Technology,0002058873,True,False,False,8
+SNDK,Sandisk,Information Technology,0002023554,True,True,False,12
+SW,Smurfit Westrock,Materials,0002005951,True,False,False,13
+SOLV,Solventum,Health Care,0001964738,True,False,False,14
+GEV,GE Vernova,Industrials,0001996810,True,False,False,15
+VLTO,Veralto,Industrials,0001967680,True,False,False,15
+CRH,CRH plc,Materials,0000849395,True,False,False,16
+TKO,TKO Group Holdings,Communication Services,0001973266,True,False,False,16
+AAPG,Ascentage Pharma Group International,,0002023311,False,True,False,0
+ACB,Aurora Cannabis Inc.,,0001683541,False,True,False,0
+ACGC,ACP Holdings Acquisition Corp.,,0002111542,False,True,False,0
+ACIU,AC Immune SA,,0001651625,False,True,False,0
+ADUR,Aduro Clean Technologies Inc.,,0001863934,False,True,False,0
+AEC,Anfield Energy Inc.,,0001519469,False,True,False,0
+AEHL,Antelope Enterprise Holdings Limited,,0001470683,False,True,False,0
+AFYA,Afya Limited,,0001771007,False,True,False,0
+AGMB,AgomAb Therapeutics NV,,0002020932,False,True,False,0
+AGRZ,Agroz Inc.,,0002009233,False,True,False,0
+AIBZ,Bitzero Holdings Inc.,,0002100457,False,True,False,0
+AIIR,Air Global PLC,,0002097725,False,True,False,0
+AKAN,Akanda Corp.,,0001888014,False,True,False,0
+ALM,Almonty Industries Inc.,,0001670061,False,True,False,0
+ALP,Alpha Compute Corp,,0001095435,False,True,False,0
+ALPS,ALPS Group Inc,,0002025774,False,True,False,0
+ALPX,Alpex Acquisition Corporation,,0002125551,False,True,False,0
+ALVO,Alvotech,,0001898416,False,True,False,0
+AMAN,Amanat Acquisition Corp,,0002112457,False,True,False,0
+ANGH,Anghami Inc.,,0001871983,False,True,False,0
+APLM,Apollomics Inc.,,0001944885,False,True,False,0
+APMC,AmperCap Acquisition Company,,0002101393,False,True,False,0
+APMD,"Apnimed, Inc.",,0001745648,False,True,False,0
+APWC,Asia Pacific Wire & Cable Corporation Limited,,0001026980,False,True,False,0
+ARBB,ARB IOT Group Limited,,0001930179,False,True,False,0
+ARQQ,Arqit Quantum Inc.,,0001859690,False,True,False,0
+ASND,Ascendis Pharma A/S,,0001612042,False,True,False,0
+ASTL,Algoma Steel Group Inc.,,0001860805,False,True,False,0
+AUGO,Aura Minerals Inc.,,0001468642,False,True,False,0
+AYA,Aya Gold & Silver Inc.,,0001826836,False,True,False,0
+AZ,A2Z Cust2Mate Solutions Corp.,,0001866030,False,True,False,0
+BANX,ArrowMark Financial Corp.,,0001578987,False,True,False,0
+BCCQ,Bleichroeder Acquisition Corp. III,,0002128045,False,True,False,0
+BID,Tribeca Strategic Acquisition Corp.,,0002094919,False,True,False,0
+BIOT,Instinct Bio Technical Company Holdings Inc.,,0002072188,False,True,False,0
+BIOX,Bioceres Crop Solutions Corp.,,0001769484,False,True,False,0
+BLDP,"Ballard Power Systems, Inc.",,0001453015,False,True,False,0
+BLIV,BeLive Holdings,,0001982448,False,True,False,0
+BMGL,Basel Medical Group Ltd,,0002004489,False,True,False,0
+BMHL,Bluemount Holdings Limited,,0002027815,False,True,False,0
+BMM,Blue Moon Metals Inc.,,0001732379,False,True,False,0
+BOT,"RoboStrategy, Inc.",,0002081119,False,True,False,0
+BPYPM,Brookfield Property Partners L.P.,,0001545772,False,True,False,0
+BPYPN,Brookfield Property Partners L.P.,,0001545772,False,True,False,0
+BPYPO,Brookfield Property Partners L.P.,,0001545772,False,True,False,0
+BPYPP,Brookfield Property Partners L.P.,,0001545772,False,True,False,0
+BRAG,Bragg Gaming Group Inc.,,0001867834,False,True,False,0
+BRAI,Braiin Limited,,0002076975,False,True,False,0
+BRBI,BRBI BR Partners S.A.,,0002058601,False,True,False,0
+BREZ,Breeze Acquisition Corp. II,,0002095443,False,True,False,0
+BSP,Bending Spoons S.p.A.,,0002004711,False,True,False,0
+BTDR,Bitdeer Technologies Group,,0001899123,False,True,False,0
+BTQ,BTQ Technologies Corp.,,0001821866,False,True,False,0
+CAE,CAE Inc,,0001173382,False,True,False,0
+CAES,"Cantor Equity Partners VII, Inc.",,0002087965,False,True,False,0
+CAII,Collective Acquisition Corp. II,,0002115404,False,True,False,0
+CBAT,CBAK Energy Technology Limited,,0002086841,False,True,False,0
+CCCT,Columbus Circle Capital Corp III,,0002123471,False,True,False,0
+CCD,Calamos Dynamic Convertible & Income Fund,,0001602584,False,True,False,0
+CCEP,Coca-Cola Europacific Partners plc,,0001650107,False,True,False,0
+CDRO,"Codere Online Luxembourg, S.A.",,0001866782,False,True,False,0
+CGO,Calamos Global Total Return Fund,,0001285650,False,True,False,0
+CHI,Calamos Convertible Opportunities and Income Fund,,0001171471,False,True,False,0
+CHNR,"China Natural Resources, Inc.",,0000793628,False,True,False,0
+CHW,Calamos Global Dynamic Income Fund,,0001396277,False,True,False,0
+CHY,Calamos Convertible and High Income Fund,,0001222719,False,True,False,0
+CIGL,Concorde International Group Ltd,,0002001794,False,True,False,0
+CLBK,"Columbia Financial, Inc.",,0002115119,False,True,False,0
+CMND,Clearmind Medicine Inc.,,0001892500,False,True,False,0
+CNCK,Coincheck Group N.V.,,0001913847,False,True,False,0
+CNSY,"Cerenome, Inc.",,,False,True,False,0
+COOT,Australian Oilseeds Holdings Limited,,0001959994,False,True,False,0
+CPZ,Calamos Long/Short Equity & Dynamic Income Trust,,0001717457,False,True,False,0
+CRDL,Cardiol Therapeutics Inc.,,0001702123,False,True,False,0
+CRGO,Freightos Limited,,0001927719,False,True,False,0
+CRML,Critical Metals Corp.,,0001951089,False,True,False,0
+CSQ,Calamos Strategic Total Return Fund,,0001275214,False,True,False,0
+DCBO,Docebo Inc.,,0001829959,False,True,False,0
+DEFT,"Defi Technologies, Inc.",,0001888274,False,True,False,0
+DETX,"Liberty Defense Holdings, Ltd.",,0001919776,False,True,False,0
+DFSC,DEFSEC Technologies Inc.,,0001889823,False,True,False,0
+DGNX,Diginex Limited,,0002010499,False,True,False,0
+DLO,DLocal Limited,,0001846832,False,True,False,0
+DMRC,Digimarc Corporation,,0002119322,False,True,False,0
+DOO,BRP Inc.,,0001748797,False,True,False,0
+DPRO,Draganfly Inc.,,0001786286,False,True,False,0
+DRUG,Bright Minds Biosciences Inc.,,0001827401,False,True,False,0
+DTSS,Datasea Intelligent Technology Ltd.,,0002110423,False,True,False,0
+DXR,Daxor Corporation,,0000027367,False,True,False,0
+ELBM,Electra Battery Materials Corporation,,0001907184,False,True,False,0
+ELE,Elemental Royalty Corporation,,0002086771,False,True,False,0
+ELVA,Electrovaya Inc.,,0001844450,False,True,False,0
+ELVR,Elevra Lithium Limited,,0001739016,False,True,False,0
+ENLT,Enlight Renewable Energy Ltd.,,0001922641,False,True,False,0
+ETOR,eToro Group Ltd.,,0001493318,False,True,False,0
+EVGN,Evogene Ltd.,,0001574565,False,True,False,0
+FDMM,Freedom Metals Acquisition Corp.,,0002129659,False,True,False,0
+FER,Ferrovial N.V.,,0001468522,False,True,False,0
+FGL,Founder Group Limited,,0001989930,False,True,False,0
+FMFC,Kandal M Venture Limited,,0002024656,False,True,False,0
+FMST,Foremost Clean Energy Ltd.,,0001935418,False,True,False,0
+FNUC,Frontier Nuclear and Minerals Inc.,,0001769697,False,True,False,0
+FRBA,First Bank,,,False,True,False,0
+FRBT,"Forbright, Inc.",,0001925062,False,True,False,0
+FRTT,Fort Technology Inc.,,0002092967,False,True,False,0
+FUND,"Sprott Focus Trust, Inc.",,0000825202,False,True,False,0
+FWAC,Futurewave Acquisition Corporation,,0002116105,False,True,False,0
+FXAC,FortuneX Acquisition Corporation,,0002121703,False,True,False,0
+GCGR,General Catalyst Global Resilience Merger Corp.,,0002108962,False,True,False,0
+GDEV,GDEV Inc.,,0001848739,False,True,False,0
+GDTC,CytoMed Therapeutics Limited,,0001873093,False,True,False,0
+GELS,Gelteq Limited,,0001920092,False,True,False,0
+GFS,GlobalFoundries Inc.,,0001709048,False,True,False,0
+GGR,Gogoro Inc.,,0001886190,False,True,False,0
+GHRS,GH Research PLC,,0001855129,False,True,False,0
+GLBS,Globus Maritime Limited,,0001499780,False,True,False,0
+GP,GreenPower Motor Company Inc.,,0001584547,False,True,False,0
+GRAB,Grab Holdings Limited,,0001855612,False,True,False,0
+GRRR,Gorilla Technology Group Inc.,,0001903145,False,True,False,0
+GRSD,Grandstand Limited,,,False,True,False,0
+GSM,Ferroglobe PLC,,0001639877,False,True,False,0
+GUAC,Berto Acquisition Corp. II,,0002081515,False,True,False,0
+GYGY,"Game Your Game, Inc.",,0002111846,False,True,False,0
+GYRO,"Gyrodyne , LLC",,0001589061,False,True,False,0
+HBNB,Hotel101 Global Holdings Corp.,,0002054507,False,True,False,0
+HELP,Cybin Inc.,,0001833141,False,True,False,0
+HERZ,"Herzfeld Credit Income Fund, Inc.",,0000880406,False,True,False,0
+HIFS,Hingham Institution for Savings,,,False,True,False,0
+HITI,High Tide Inc.,,0001847409,False,True,False,0
+HKPD,"Cellyan Biotechnology Co., Ltd",,0002007702,False,True,False,0
+HQ,Horizon Quantum Holdings Ltd.,,0002088256,False,True,False,0
+HTOO,Fusion Fuel Green PLC,,0001819794,False,True,False,0
+HUBC,Hub Cyber Security Ltd.,,0001905660,False,True,False,0
+HUBCW,Hub Cyber Security Ltd.,,0001905660,False,True,False,0
+HYFT,MindWalk Holdings Corp.,,0001715925,False,True,False,0
+IACQ,Irenic Acquisition Corp.,,0002122505,False,True,False,0
+IFRX,InflaRx N.V.,,0001708688,False,True,False,0
+IMCC,IM Cannabis Corp.,,0001792030,False,True,False,0
+IMTE,Integrated Media Technology Limited,,0001668438,False,True,False,0
+IMTX,Immatics N.V.,,0001809196,False,True,False,0
+INCR,Intercure Ltd.,,0001857030,False,True,False,0
+INTR,Inter & Co. Inc.,,0001864163,False,True,False,0
+IOND,Ionic Digital Inc.,,0002007691,False,True,False,0
+IPVV,"InterPrivate Investment Partners V, Inc.",,0002105274,False,True,False,0
+ISNR,Snow Rothschild Acquisition Corp.,,0002123475,False,True,False,0
+ITG,"ITG, Inc.",,0002110117,False,True,False,0
+IVA,Inventiva S.A.,,0001756594,False,True,False,0
+JATT,JATT II Acquisition Corp,,0002112446,False,True,False,0
+JXG,JX Luxventure Group Inc.,,0001546383,False,True,False,0
+KARD,"Kardigan, Inc.",,0002123613,False,True,False,0
+KARO,Karooooo Ltd.,,0001828102,False,True,False,0
+KEYY,Keystone Acquisition Corp.,,0002102771,False,True,False,0
+KGEI,Kolibri Global Energy Inc.,,0001477081,False,True,False,0
+KMDA,Kamada Ltd.,,0001567529,False,True,False,0
+KSPI,Joint Stock Company Kaspi.kz,,0001985487,False,True,False,0
+KWM,"K Wave Media, Ltd.",,0002000756,False,True,False,0
+KYIV,Kyivstar Group Ltd.,,0002062440,False,True,False,0
+LCFY,Locafy Limited,,0001875547,False,True,False,0
+LFTO,"Liftoff Mobile, Inc.",,0001850351,False,True,False,0
+LGO,Largo Inc.,,0001400438,False,True,False,0
+LIME,"Neutron Holdings, Inc.",,0001699963,False,True,False,0
+LNKS,Linkers Industries Limited,,0001972074,False,True,False,0
+LTGR,Long Table Growth Corp.,,0002104177,False,True,False,0
+MAGH,Magnitude International Ltd,,0002046117,False,True,False,0
+MAKO,Mako Mining Corp,,0001784930,False,True,False,0
+MARPS,Marine Petroleum Trust,,0000062362,False,True,False,0
+MB,MasterBeef Group,,0002027265,False,True,False,0
+MDWD,MediWound Ltd.,,0001593984,False,True,False,0
+MDXH,MDxHealth SA,,0001872529,False,True,False,0
+MEOH,Methanex Corporation,,0000886977,False,True,False,0
+MFP,"Midera Food Processing, Inc.",,0002088281,False,True,False,0
+MLEC,Moolec Science SA,,0001937737,False,True,False,0
+MMYT,MakeMyTrip Limited,,0001495153,False,True,False,0
+MNY,MoneyHero Limited,,0001974044,False,True,False,0
+MOB,Mobilicom Limited,,0001898643,False,True,False,0
+MRNO,Murano Global Investments PLC,,0001988776,False,True,False,0
+MRX,Marex Group Limited,,0001997464,False,True,False,0
+MSLE,Satellos Bioscience Inc.,,0001421642,False,True,False,0
+NAMM,Namib Minerals,,0002026514,False,True,False,0
+NBN,Northeast Bank,,,False,True,False,0
+NBTX,Nanobiotix S.A.,,0001760854,False,True,False,0
+NCO,Southern Cross Acquisition I Corp.,,0002116230,False,True,False,0
+NEXN,Nexxen International Ltd.,,0001849396,False,True,False,0
+NGEN,NervGen Pharma Corp.,,0001751912,False,True,False,0
+NVNI,Nvni Group Limited,,0001965143,False,True,False,0
+NVX,NOVONIX Limited,,0001859795,False,True,False,0
+NYAX,Nayax Ltd.,,0001901279,False,True,False,0
+NYXH,Nyxoah SA,,0001857190,False,True,False,0
+OBX,"Obsidian Therapeutics, Inc.",,0002130606,False,True,False,0
+OCCI,"OFS Credit Company, Inc.",,0001716951,False,True,False,0
+OCS,Oculis Holding AG,,0001953530,False,True,False,0
+OGI,Organigram Global Inc.,,0001620737,False,True,False,0
+OHAC,Oceanhawk Acquisition Corp.,,0002090787,False,True,False,0
+OIO,OIO Group,,0001957538,False,True,False,0
+OKYO,OKYO Pharma Limited,,0001849296,False,True,False,0
+OMSE,OMS Energy Technologies Inc.,,0002012219,False,True,False,0
+OPTH,Optimi Health Corp.,,0002027329,False,True,False,0
+OWLS,OBOOK Holdings Inc.,,0002025416,False,True,False,0
+OXLC,Oxford Lane Capital Corp.,,0001495222,False,True,False,0
+OZK,Bank OZK,,0001569650,False,True,False,0
+PAX,Patria Investments Limited,,0001825570,False,True,False,0
+PAYP,PayPay Corporation,,0002080845,False,True,False,0
+PBAM,"Private Bancorp of America, Inc.",,0001705284,False,True,False,0
+PBK,PowerBank Corporation,,0002011053,False,True,False,0
+PBLS,"Parabilis Medicines, Inc.",,0001657677,False,True,False,0
+PBM,Psyence Biomedical Ltd.,,0001985062,False,True,False,0
+PFBC,Preferred Bank,,0001492165,False,True,False,0
+PHAR,Pharming Group N.V.,,0001828316,False,True,False,0
+PHVS,Pharvaris N.V.,,0001830487,False,True,False,0
+PICS,PicS N.V.,,0001841644,False,True,False,0
+PLSM,Pulsenmore Ltd.,,0002064764,False,True,False,0
+PMAX,Powell Max Limited,,0002012096,False,True,False,0
+POET,POET Technologies Inc.,,0001437424,False,True,False,0
+PRE,Prenetics Global Limited,,0001876431,False,True,False,0
+PRQR,ProQR Therapeutics N.V.,,0001612940,False,True,False,0
+PSNY,Polestar Automotive Holding UK Limited,,0001884082,False,True,False,0
+PSNYW,Polestar Automotive Holding UK Limited,,0001884082,False,True,False,0
+PWRL,Powerlaw Corp.,,0002052053,False,True,False,0
+QMLS,"QumulusAI, Inc.",,0002084026,False,True,False,0
+QNME,"Quanome Technologies, Inc.",,,False,True,False,0
+QNT,Quantinuum Inc.,,0002110105,False,True,False,0
+QNTM,Quantum Biopharma Ltd.,,0001771885,False,True,False,0
+QQQX,Nuveen NASDAQ 100 Dynamic Overwrite Fund,,0001608741,False,True,False,0
+RACC,Research Alliance Corporation III,,0002118032,False,True,False,0
+RACD,Research Alliance Corporation IV,,0002137777,False,True,False,0
+RNW,ReNew Energy Global plc,,0001848763,False,True,False,0
+RPGL,Republic Power Group Limited,,0001912884,False,True,False,0
+RREV,RRE Ventures Acquisition Corp.,,0002123969,False,True,False,0
+SAGT,SAGTEC GLOBAL LIMITED,,0002029138,False,True,False,0
+SANG,Sangoma Technologies Corporation,,0001753368,False,True,False,0
+SCTX,Scribe Therapeutics Inc.,,0001853921,False,True,False,0
+SCZM,Santacruz Silver Mining Ltd.,,0001548536,False,True,False,0
+SGML,Sigma Lithium Corporation,,0001848309,False,True,False,0
+SHMD,SCHMID Group N.V.,,0001987240,False,True,False,0
+SHOT,RMG ML Sports Holdings,,0002104879,False,True,False,0
+SIFY,Sify Technologies Limited,,0001094324,False,True,False,0
+SLBT,SL Science Holding Limited,,0002070534,False,True,False,0
+SLMT,Brera Holdings PLC,,0001939965,False,True,False,0
+SMX,SMX (Security Matters) Public Limited Company,,0001940674,False,True,False,0
+SNDL,SNDL Inc.,,0001766600,False,True,False,0
+SOPH,SOPHiA GENETICS SA,,0001840706,False,True,False,0
+SPCX,Space Exploration Technologies Corp.,,0001181412,False,True,False,0
+SRAD,Sportradar Group AG,,0001836470,False,True,False,0
+SSBI,Summit State Bank,,,False,True,False,0
+STKE,Sol Strategies Inc.,,0001846839,False,True,False,0
+STLN,"Starling Oncology Institute, Inc.",,,False,True,False,0
+STNE,StoneCo Ltd.,,0001745431,False,True,False,0
+SUJA,"Suja Life, Inc.",,0001934114,False,True,False,0
+SWVL,Swvl Holdings Corp,,0001875609,False,True,False,0
+TBLD,Thornburg Income Builder Opportunities Trust,,0001820378,False,True,False,0
+TDIC,Dreamland Limited,,0002041338,False,True,False,0
+THH,TryHard Holdings Limited,,0002044241,False,True,False,0
+TIGO,Millicom International Cellular S.A.,,0000912958,False,True,False,0
+TLSA,Tiziana Life Sciences Ltd,,0001723069,False,True,False,0
+TMCR,The Metals Royalty Company Inc.,,0002087398,False,True,False,0
+TNMG,TNL Mediagene,,0002013186,False,True,False,0
+TOWN,Towne Bank,,,False,True,False,0
+TRI,Thomson Reuters Corp,,0001075124,False,True,False,0
+TRMD,TORM plc,,0001655891,False,True,False,0
+TSAT,Telesat Corporation,,0001845840,False,True,False,0
+TVIV,Texas Ventures Acquisition IV Corp,,0002096755,False,True,False,0
+UROY,Uranium Royalty Corp.,,0001711570,False,True,False,0
+USDE,StablecoinX Inc.,,0002080215,False,True,False,0
+VBNK,VersaBank,,0001690639,False,True,False,0
+VCIG,VCI Global Limited,,0001930510,False,True,False,0
+VINP,Vinci Compass Investments Ltd.,,0001826286,False,True,False,0
+VIVO,VivoPower PLC,,0001681348,False,True,False,0
+VMAR,Vision Marine Technologies Inc.,,0001813783,False,True,False,0
+VMET,Versamet Royalties Corporation,,0002080073,False,True,False,0
+VOXR,Vox Royalty Corp.,,0001907909,False,True,False,0
+VRAX,Virax Biolabs Group Limited,,0001885827,False,True,False,0
+VRXA,Veraxa Biotech AG,,0002079109,False,True,False,0
+WILC,"G. Willi-Food International,  Ltd.",,0001030997,False,True,False,0
+XP,XP Inc.,,0001787425,False,True,False,0
+XRTX,XORTX Therapeutics Inc.,,0001729214,False,True,False,0
+YARW,"Yarrow Bioscience, Inc.",,,False,True,False,0
+YICC,Yorkville International Capital Corp.,,0002130386,False,True,False,0
+YMAT,"J-Star Holding Co., Ltd.",,0001875016,False,True,False,0
+YTRA,"Yatra Online, Inc.",,0001516899,False,True,False,0
+YYGH,YY Group Holding Limited,,0001985337,False,True,False,0
+ZTEK,Zentek Ltd.,,0001904501,False,True,False,0
+AACO,Abony Acquisition Corp. I,,0002099906,False,True,False,1
+AACP,Apogee Acquisition Corp,,0002102123,False,True,False,1
+ACAA,Averin Capital Acquisition Corp.,,0002096900,False,True,False,1
+ADAC,American Drive Acquisition Company,,0002083002,False,True,False,1
+ADSE,ADS-TEC ENERGY PLC,,0001879248,False,True,False,1
+AEAQ,Activate Energy Acquisition Corp.,,0002083689,False,True,False,1
+AESP,Aeon Acquisition I Corp.,,0002082526,False,True,False,1
+ALOV,"Aldabra 4 Liquidity Opportunity Vehicle, Inc.",,0002083989,False,True,False,1
+APUR,Aperture AC,,0002093524,False,True,False,1
+ARCI,Archimedes Tech SPAC Partners III Co.,,0002083910,False,True,False,1
+ARTC,Art Technology Acquisition Corp.,,0002086545,False,True,False,1
+AVAT,Avalanche Treasury Corporation,,0002092446,False,True,False,1
+BBCQ,Bleichroeder Acquisition Corp. II,,0002088295,False,True,False,1
+BHAV,BHAV Acquisition Corp,,0002097288,False,True,False,1
+BRKH,Burtech Acquisition Corp II,,0002098707,False,True,False,1
+BRUN,Boost Run Inc.,,0002090646,False,True,False,1
+BTTC,Black Titan Corp,,0002034400,False,True,False,1
+CAQ,Cambridge Acquisition Corp.,,0002100125,False,True,False,1
+CCXI,Churchill Capital Corp XI,,0002074973,False,True,False,1
+CLIK,Click Holdings Limited,,0002020027,False,True,False,1
+CMII,Columbus Circle Capital Corp II,,0002088805,False,True,False,1
+CRAN,Crane Harbor Acquisition Corp. II,,0002081358,False,True,False,1
+CSHR,CoinShares PLC,,0002087587,False,True,False,1
+CXII,Churchill Capital Corp XII,,0002114227,False,True,False,1
+DBCA,D. Boral Acquisition I Corp.,,0002095161,False,True,False,1
+DSAC,Daedalus Special Acquisition Corp.,,0002082149,False,True,False,1
+ENGS,Energys Group Limited,,0001971828,False,True,False,1
+FTHA,Forefront Tech Holdings Acquisition Corp,,0002097986,False,True,False,1
+FVAV,Fortress Value Acquisition Corp. V,,0001850733,False,True,False,1
+GFAI,"Guardforce AI Co., Limited",,0001804469,False,True,False,1
+GIBO,GIBO Holdings Limited,,0002034520,False,True,False,1
+GIX,GigCapital9 Corp.,,0002098712,False,True,False,1
+GLND,Greenland Energy Company,,0002093507,False,True,False,1
+GPAC,General Purpose Acquisition Corp.,,0002085408,False,True,False,1
+GSRV,GSR V Acquisition Corp.,,0002111762,False,True,False,1
+HCAC,Hall Chadwick Acquisition Corp.,,0002079013,False,True,False,1
+HCIC,Hennessy Capital Investment Corp. VIII,,0002099093,False,True,False,1
+HCICR,Hennessy Capital Investment Corp. VIII,,0002099093,False,True,False,1
+IDAC,Iron Dome Acquisition I Corp.,,0002090441,False,True,False,1
+IEAG,Infinite Eagle Acquisition Corp.,,0002084396,False,True,False,1
+IGAC,Invest Green Acquisition Corporation,,0002075068,False,True,False,1
+IPFX,Inflection Point Acquisition Corp. VI,,0002102041,False,True,False,1
+JEM,707 Cayman Holdings Limited,,0002018222,False,True,False,1
+JLHL,Julong Holding Limited,,0002007846,False,True,False,1
+KRAQ,KRAKacquisition Corp,,0002082119,False,True,False,1
+KTWO,K2 Capital Acquisition Corporation,,0002086524,False,True,False,1
+MATH,Metalpha Technology Holding Limited,,0001682241,False,True,False,1
+MCAH,Mountain Crest Acquisition 6 Corp.,,0002109876,False,True,False,1
+MESH,Meshflow Acquisition Corp.,,0002081468,False,True,False,1
+MEVO,M Evo Global Acquisition Corp II,,0002087361,False,True,False,1
+MGN,Megan Holdings Limited,,0001995075,False,True,False,1
+MLAA,Mountain Lake Acquisition Corp. II,,0002094265,False,True,False,1
+MYX,Maywood Acquisition Corp. 2,,0002080087,False,True,False,1
+NHIV,NewHold Investment Corp IV,,0002099767,False,True,False,1
+ORIO,Orion Digital Corp.,,0001602842,False,True,False,1
+PAAC,Proem Acquisition Corp I,,0002087446,False,True,False,1
+PALO,Paloma Acquisition Corp I,,0002101562,False,True,False,1
+PASW,"Ping An Biomedical Co., Ltd.",,0001897532,False,True,False,1
+PECE,Peace Acquisition Corp,,0002088626,False,True,False,1
+PONO,"Pono Capital Four, Inc.",,0002108164,False,True,False,1
+PTAC,Patriot Acquisition Corp.,,0002099095,False,True,False,1
+QADR,QDRO Acquisition Corp.,,0002083217,False,True,False,1
+RMIX,"Suncrete, Inc.",,0002094433,False,True,False,1
+RMSG,Real Messenger Corporation,,0001983324,False,True,False,1
+SCII,SC II Acquisition Corp.,,0002076739,False,True,False,1
+SCPQ,Social Commerce Partners Corporation,,0002083143,False,True,False,1
+SLGB,Smart Logistics Global Limited,,0001987189,False,True,False,1
+SPRC,SciSparc Ltd.,,0001611746,False,True,False,1
+SSAC,SPACSphere Acquisition Corp.,,0002081300,False,True,False,1
+STFS,Star Fashion Culture Holdings Limited,,0002003061,False,True,False,1
+SUMA,SUMA Acquisition Corporation,,0002105838,False,True,False,1
+SVAQ,Silicon Valley Acquisition Corp.,,0002085659,False,True,False,1
+SVIV,Spring Valley Acquisition Corp. IV,,0002098242,False,True,False,1
+TGHL,The GrowHub Limited,,0002024114,False,True,False,1
+TMTS,Spartacus Acquisition Corp. II,,0002097364,False,True,False,1
+TRGS,TRG Latin America Acquisitions Corp.,,0002098780,False,True,False,1
+VHCP,Vine Hill Capital Investment Corp. II,,0002086264,False,True,False,1
+WLII,Willow Lane Acquisition Corp. II,,0002083946,False,True,False,1
+XCBE,X3 Acquisition Corp. Ltd.,,0002083493,False,True,False,1
+XNDU,Xanadu Quantum Technologies Limited,,0002097163,False,True,False,1
+ZKP,Lafayette Digital Acquisition Corp. I,,0002087447,False,True,False,1
+AACI,Armada Acquisition Corp. III,,0002092897,False,True,False,2
+AIAI,AIAI Holdings Corporation,,0002096362,False,True,False,2
+AKTS,"Aktis Oncology, Inc.",,0002035832,False,True,False,2
+ALMR,"Alamar Biosciences, Inc.",,0002104204,False,True,False,2
+AMSS,AMASS Brands Inc.,,0001851491,False,True,False,2
+APC,ARKO Petroleum Corp.,,0002080921,False,True,False,2
+APXT,Apex Treasury Corporation,,0002079253,False,True,False,2
+ARCL,ARC Group Acquisition I Corp,,0002073515,False,True,False,2
+ATCX,Atlas Critical Minerals Corporation,,0001684688,False,True,False,2
+AVLN,Avalyn Pharma Inc.,,0001540171,False,True,False,2
+BGL,Blue Gold Limited,,0002019435,False,True,False,2
+BIXI,Bitcoin Infrastructure Acquisition Corp Ltd.,,0002082542,False,True,False,2
+BLRK,Bluerock Acquisition Corp.,,0002081532,False,True,False,2
+BLZR,Trailblazer Acquisition Corp.,,0002075310,False,True,False,2
+BRR,"ProCap Financial, Inc.",,0002076163,False,True,False,2
+BRRWW,"ProCap Financial, Inc.",,0002076163,False,True,False,2
+CBRS,Cerebras Systems Inc.,,0002021728,False,True,False,2
+CNXU,Conexeu Sciences Inc.,,0002066836,False,True,False,2
+COAG,"Hemab Therapeutics Holdings, Inc.",,0002114044,False,True,False,2
+CRAC,Crown Reserve Acquisition Corp. I,,0002070887,False,True,False,2
+CRE,Cre8 Enterprise Limited,,0002003977,False,True,False,2
+CTAA,ClearThink 1 Acquisition Corp.,,0002094073,False,True,False,2
+CUPR,Cuprina Holdings (Cayman) Limited,,0001995704,False,True,False,2
+CYAB,"Cyabra, Inc.",,0002032341,False,True,False,2
+DNMX,Dynamix Corporation III,,0002081125,False,True,False,2
+DYOR,Insight Digital Partners II,,0002079292,False,True,False,2
+EIKN,"Eikon Therapeutics, Inc.",,0001861123,False,True,False,2
+ELMT,The Elmet Group Co.,,0002101698,False,True,False,2
+EVOX,Evolution Global Acquisition Corp,,0002077954,False,True,False,2
+EXYN,"Exyn Technologies, Inc.",,0001960355,False,True,False,2
+FCHL,Fitness Champs Holdings Limited,,0002023796,False,True,False,2
+FMAC,Future Money Acquisition Corporation,,0002099232,False,True,False,2
+FOFO,"Hang Feng Technology Innovation Co., Ltd.",,0002060083,False,True,False,2
+FRVO,Fervo Energy Company,,0001853868,False,True,False,2
+FTRK,FAST TRACK GROUP,,0002027262,False,True,False,2
+GENB,"Generate Biomedicines, Inc.",,0002100782,False,True,False,2
+GIW,GigCapital8 Corp.,,0002080019,False,True,False,2
+GLE,Global Engine Group Holding Limited,,0001908705,False,True,False,2
+GLXG,Galaxy Payroll Group Limited,,0001905920,False,True,False,2
+HACQ,HCM IV Acquisition Corp.,,0002089982,False,True,False,2
+HCMA,HCM III Acquisition Corp.,,0002069856,False,True,False,2
+HLXC,Helix Acquisition Corp. III,,0002099656,False,True,False,2
+HMH,HMH Holding Inc.,,0002021880,False,True,False,2
+HVMC,Highview Merger Corp.,,0002070602,False,True,False,2
+IACO,Idea Acquisition Corp.,,0002091176,False,True,False,2
+IBG,Innovation Beverage Group Limited,,0001924482,False,True,False,2
+ICON,Icon Energy Corp.,,0001995574,False,True,False,2
+ILLU,Illumination Acquisition Corp I,,0002101135,False,True,False,2
+INIO,INNIO N.V.,,0002109150,False,True,False,2
+ITHA,ITHAX Acquisition Corp III,,0002080985,False,True,False,2
+JDZG,JIADE LIMITED,,0001976908,False,True,False,2
+KBON,Karbon Capital Partners Corp.,,0002088749,False,True,False,2
+KLRA,"Kailera Therapeutics, Inc.",,0002096997,False,True,False,2
+LABT,Lakewood-Amedex Biotherapeutics Inc.,,0002079272,False,True,False,2
+LATA,Galata Acquisition Corp. II,,0002076427,False,True,False,2
+LFAC,Leapfrog Acquisition Corporation,,0002084563,False,True,False,2
+LMRI,"Lumexa Imaging Holdings, Inc.",,0002071288,False,True,False,2
+LPCV,Launchpad Cadenza Acquisition Corp I,,0002083728,False,True,False,2
+LZMH,LZ Technology Holdings Limited,,0001967397,False,True,False,2
+MBVI,M3-Brigade Acquisition VI Corp.,,0002073928,False,True,False,2
+MMTX,Miluna Acquisition Corp,,0002077033,False,True,False,2
+MOBI,"Mobia Medical, Inc.",,0001489993,False,True,False,2
+MUZE,Muzero Acquisition Corp,,0002093484,False,True,False,2
+MWH,"SOLV Energy, Inc.",,0002065636,False,True,False,2
+OCTV,Octave Intelligence plc,,0002083632,False,True,False,2
+ODTX,"Odyssey Therapeutics, Inc.",,0001882782,False,True,False,2
+OIM,OneIM Acquisition Corp.,,0002088325,False,True,False,2
+ORKT,Orangekloud Technology Inc.,,0001979407,False,True,False,2
+OTGA,OTG Acquisition Corp. I,,0002077010,False,True,False,2
+PARK,"Park Dental Partners, Inc.",,0002069604,False,True,False,2
+PC,Premium Catering (Holdings) Limited,,0001998056,False,True,False,2
+PLUT,Plutus Financial Group Limited,,0001933021,False,True,False,2
+PTOR,Praetorian Acquisition Corp.,,0002093912,False,True,False,2
+RITR,Reitar Logtech Holdings Limited,,0001951229,False,True,False,2
+RNA,"Atrium Therapeutics, Inc.",,0002093101,False,True,False,2
+RNGT,Range Capital Acquisition Corp II,,0002078653,False,True,False,2
+SFHG,Samfine Creation Holdings Group Limited,,0001926792,False,True,False,2
+SORN,Soren Acquisition Corp.,,0002086263,False,True,False,2
+SPHL,Springview Holdings Ltd,,0002002236,False,True,False,2
+SPPL,SIMPPLE LTD.,,0001948697,False,True,False,2
+SWMR,"Swarmer, Inc",,0002092574,False,True,False,2
+TDWD,Tailwind 2.0 Acquisition Corp.,,0002076616,False,True,False,2
+TJGC,TJGC Group Limited,,0001969928,False,True,False,2
+TLNC,Talon Capital Corp.,,0002073340,False,True,False,2
+TRAX,"First Tracks Biotherapeutics, Inc.",,0002091349,False,True,False,2
+TWLV,Twelve Seas Investment Company III,,0002052243,False,True,False,2
+VFS,VinFast Auto Ltd.,,0001913510,False,True,False,2
+WSHP,WeShop Holdings Limited,,0002048271,False,True,False,2
+XE,"X-Energy, Inc.",,0002088896,False,True,False,2
+XSLL,Xsolla SPAC 1,,0002088807,False,True,False,2
+YSWY,"Yesway, Inc.",,0001859836,False,True,False,2
+YXT,YXT.COM GROUP HOLDING LIMITED,,0001872090,False,True,False,2
+ZENA,"ZenaTech, Inc.",,0001997403,False,True,False,2
+ZYBT,Zhengye Biotechnology Holding Limited,,0001975641,False,True,False,2
+ACCL,Acco Group Holdings Limited,,0002038378,False,True,False,3
+AGCC,Agencia Comercial Spirits Ltd,,0002060016,False,True,False,3
+AHMA,Ambitions Enterprise Management Co. L.L.C,,0002010959,False,True,False,3
+AIDX,"20/20 Biolabs, Inc.",,0001139685,False,True,False,3
+AIIO,Robo.ai Inc.,,0001932737,False,True,False,3
+ANPA,Rich Sparkle Holdings Limited,,0002031688,False,True,False,3
+ANTA,Antalpha Platform Holding Company,,0002044255,False,True,False,3
+ATAI,AtaiBeckley Inc.,,0002081043,False,True,False,3
+ATGL,Alpha Technology Group Limited,,0001967621,False,True,False,3
+AXIN,Axiom Intelligence Acquisition Corp 1,,0002057030,False,True,False,3
+BACC,Blue Acquisition Corp.,,0002059654,False,True,False,3
+BCAR,D. Boral ARC Acquisition I Corp.,,0002065779,False,True,False,3
+BGIN,Bgin Blockchain Limited,,0001945565,False,True,False,3
+BHST,BioHarvest Sciences Inc.,,0001723464,False,True,False,3
+BPAC,Blueport Acquisition Ltd,,0002064177,False,True,False,3
+BUUU,BUUU Group Limited,,0002047273,False,True,False,3
+CAAS,"China Automotive Systems, Inc.",,0002037400,False,True,False,3
+CBC,"Central Bancompany, Inc.",,0002065601,False,True,False,3
+CCEC,Capital Clean Energy Carriers Corp.,,0001392326,False,True,False,3
+CCHH,CCH Holdings Ltd,,0002074123,False,True,False,3
+CEPS,"Cantor Equity Partners VI, Inc.",,0002089536,False,True,False,3
+CHAI,"Core AI Holdings, Inc.",,0001649009,False,True,False,3
+CISS,C3is Inc.,,0001951067,False,True,False,3
+CTW,CTW,,0002047148,False,True,False,3
+DGXX,Digi Power X Inc.,,0001854368,False,True,False,3
+DKI,DarkIris Inc.,,0002058584,False,True,False,3
+EDRY,EuroDry Ltd.,,0001731388,False,True,False,3
+EFTY,"Etoiles Capital Group Co., Ltd.",,0002058349,False,True,False,3
+ELOG,Eastern International Ltd.,,0002013320,False,True,False,3
+EMIS,Emmis Acquisition Corp.,,0002075816,False,True,False,3
+EPRX,Eupraxia Pharmaceuticals Inc.,,0001581178,False,True,False,3
+FBGL,FBS Global Limited,,0001938534,False,True,False,3
+FEBO,Fenbo Holdings Limited,,0001957001,False,True,False,3
+FGII,FG Imperii Acquisition Corp.,,0002090452,False,True,False,3
+FIGX,FIGX Capital Acquisition Corp.,,0002059033,False,True,False,3
+FIGXW,FIGX Capital Acquisition Corp.,,0002059033,False,True,False,3
+GAUZ,Gauzy Ltd.,,0001781446,False,True,False,3
+GFUZ,General Fusion Group Ltd.,,0002074850,False,True,False,3
+GMHS,Gamehaus Holdings Inc.,,0002000530,False,True,False,3
+HCHL,Happy City Holdings Limited,,0002046656,False,True,False,3
+INTJ,Intelligent Group Limited,,0001916416,False,True,False,3
+KAZR,Skyline Builders Group Holding Limited,,0002031009,False,True,False,3
+KBSX,FST Corp.,,0002014254,False,True,False,3
+KMRK,K-Tech Solutions Company Limited,,0002049187,False,True,False,3
+LGCL,Lucas GC Limited,,0001954694,False,True,False,3
+LHSW,Lianhe Sowell International Group Ltd,,0002004024,False,True,False,3
+LIFE,Ethos Technologies Inc.,,0001788451,False,True,False,3
+LWAC,LightWave Acquisition Corp.,,0002061379,False,True,False,3
+MAMK,MaxsMaking Inc.,,0002008007,False,True,False,3
+MASK,3 E Network Technology Group Ltd,,0001993097,False,True,False,3
+MCGA,Yorkville Acquisition Corp.,,0002064658,False,True,False,3
+MCTA,Charming Medical Limited,,0002035992,False,True,False,3
+MENS,Jyong Biotech Ltd.,,0001954488,False,True,False,3
+MFI,mF International Limited,,0001940941,False,True,False,3
+MGRT,Mega Fortune Company Limited,,0002033377,False,True,False,3
+MIMI,Mint Incorporation Limited,,0001998560,False,True,False,3
+MKLY,McKinley Acquisition Corporation,,0002067592,False,True,False,3
+NCI,Neo-Concept International Group Holdings Limited,,0001916331,False,True,False,3
+NCT,Intercont (Cayman) Limited,,0002018529,False,True,False,3
+NIKI,"Niki BioSolutions, Inc.",,0001734005,False,True,False,3
+NPT,Texxon Holding Limited,,0002014337,False,True,False,3
+OBAI,"Our Bond, Inc.",,0001756064,False,True,False,3
+ONCY,Oncolytics Biotech Inc.,,0001129928,False,True,False,3
+PHOE,Phoenix Asia Holdings Limited,,0002035709,False,True,False,3
+PLBL,Polibeli Group Ltd,,0002035697,False,True,False,3
+PLTS,Platinum Analytics Cayman Limited,,0002053033,False,True,False,3
+PLYX,"Polaryx Therapeutics, Inc.",,0002075320,False,True,False,3
+PMEC,Primech Holdings Ltd.,,0001891944,False,True,False,3
+PMTR,Perimeter Acquisition Corp. I,,0002061473,False,True,False,3
+PN,PN Smart Energy Limited,,0002001288,False,True,False,3
+PPHC,"Public Policy Holding Company, Inc.",,0001903508,False,True,False,3
+PRFX,PRF Technologies Ltd.,,0001801834,False,True,False,3
+PURR,Hyperliquid Strategies Inc,,0002078856,False,True,False,3
+QMMM,QMMM Holdings Limited,,0001971542,False,True,False,3
+QTEX,QTREX Quantum Ltd.,,0001837493,False,True,False,3
+RAY,Raytech Holding Limited,,0001948443,False,True,False,3
+RBNE,Robin Energy Ltd.,,0002039060,False,True,False,3
+RCT,RedCloud Holdings plc,,0002027360,False,True,False,3
+RDAG,Republic Digital Acquisition Company,,0002055459,False,True,False,3
+RECT,Rectitude Holdings Ltd,,0001995116,False,True,False,3
+RFAM,RF Acquisition Corp III,,0002091712,False,True,False,3
+ROC,Rank One Computing Corporation,,0002077709,False,True,False,3
+ROMA,Roma Green Finance Limited,,0001945240,False,True,False,3
+RUBI,Rubico Inc.,,0001943421,False,True,False,3
+RYET,Ruanyun Edai Technology Inc.,,0001873454,False,True,False,3
+RYOJ,"rYojbaba Co., Ltd.",,0002012600,False,True,False,3
+RZLV,Rezolve AI PLC,,0001920294,False,True,False,3
+SAAQ,Space Asset Acquisition Corp.,,0002091222,False,True,False,3
+SGP,"SpyGlass Pharma, Inc.",,0001778922,False,True,False,3
+SHAZ,"SharonAI Holdings, Inc.",,0002068385,False,True,False,3
+SOCA,Solarius Capital Acquisition Corp.,,0002065948,False,True,False,3
+STAK,STAK Inc.,,0002002453,False,True,False,3
+SUGP,SU Group Holdings Limited,,0001969863,False,True,False,3
+SVRN,OceanPal Inc.,,0001869467,False,True,False,3
+TLIH,Ten-League International Holdings Limited,,0001982012,False,True,False,3
+TOYO,"TOYO Co., Ltd",,0001985273,False,True,False,3
+USEA,United Maritime Corporation,,0001912847,False,True,False,3
+WENN,Wen Acquisition Corp,,0002057043,False,True,False,3
+WETO,Wetour Robotics Limited,,0001941158,False,True,False,3
+WSE,Wise Group plc,,0002099039,False,True,False,3
+WSTN,Westin Acquisition Corp,,0002076192,False,True,False,3
+YDDL,One and One Green Technologies. INC,,0002034723,False,True,False,3
+YDES,YD Bio Limited,,0002011674,False,True,False,3
+ZBAO,Zhibao Technology Inc.,,0001966750,False,True,False,3
+ZOOZ,ZOOZ Strategy Ltd.,,0001992818,False,True,False,3
+ZTG,Zenta Group Company Limited,,0002011458,False,True,False,3
+ALIS,Calisa Acquisition Corp,,0002026767,False,True,False,4
+ARXS,"Arxis, Inc.",,0002093536,False,True,False,4
+AURE,Aurelion Inc.,,0001765850,False,True,False,4
+AZI,Autozi Internet Technology (Global) Ltd.,,0001959726,False,True,False,4
+BDMD,Baird Medical Investment Holdings Ltd,,0001982444,False,True,False,4
+BIYA,Baiya International Group Inc.,,0001944712,False,True,False,4
+BNRG,Brenmiller Energy Ltd,,0001901215,False,True,False,4
+BYAH,"Park Ha Biological Technology Co., Ltd.",,0001986247,False,True,False,4
+CBK,"Commercial Bancgroup, Inc.",,0001981546,False,True,False,4
+CDNL,Cardinal Infrastructure Group Inc.,,0002079999,False,True,False,4
+CGTL,Creative Global Technology Holdings Limited,,0001967822,False,True,False,4
+DCX,Digital Currency X Technology Inc.,,0001957413,False,True,False,4
+DLXY,Delixy Holdings Limited,,0002025218,False,True,False,4
+DSY,Big Tree Cloud Holdings Limited,,0001999297,False,True,False,4
+DXST,Decent Holding Inc.,,0001958133,False,True,False,4
+ECX,ECARX Holdings Inc.,,0001861974,False,True,False,4
+EDHL,Everbright Digital Holding Limited,,0002024876,False,True,False,4
+EHLD,Euroholdings Ltd.,,0002032779,False,True,False,4
+ELPW,Elong Power Holding Limited,,0002015691,False,True,False,4
+EPSM,Epsium Enterprise Limited,,0001883437,False,True,False,4
+EQPT,EquipmentShare.com Inc,,0001693736,False,True,False,4
+GCL,GCL Global Holdings Ltd,,0002002045,False,True,False,4
+GMEX,GMEX ROBOTICS CORPORATION,,0001928581,False,True,False,4
+GRAN,Grande Group Limited,,0002027722,False,True,False,4
+HAO,Haoxi Health Technology Limited,,0001954594,False,True,False,4
+HCAI,"Huachen AI Parking Management Technology Holding Co., Ltd.",,0001958399,False,True,False,4
+HMR,Heidmar Maritime Holdings Corp.,,0002029471,False,True,False,4
+HPAI,Helport AI Limited,,0002001699,False,True,False,4
+HTLM,HomesToLife Ltd,,0002023153,False,True,False,4
+HUHU,HUHUTECH International Group Inc.,,0001945415,False,True,False,4
+HXHX,Haoxin Holdings Limited,,0001936817,False,True,False,4
+HYNE,"Hoyne Bancorp, Inc.",,0002073153,False,True,False,4
+INEO,INNEOVA Holdings Limited,,0001933951,False,True,False,4
+INLF,INLIF LIMITED,,0001991592,False,True,False,4
+IOTR,iOThree Limited,,0001997637,False,True,False,4
+IRHO,Iron Horse Acquisitions II Corp.,,0002051985,False,True,False,4
+ITOC,iTonic Holdings Ltd,,0001970544,False,True,False,4
+IZM,ICZOOM Group Inc.,,0001854572,False,True,False,4
+JBDI,JBDI Holdings Limited,,0001964314,False,True,False,4
+JL,J-Long Group Limited,,0001948436,False,True,False,4
+JYD,Jayud Global Logistics Limited,,0001938186,False,True,False,4
+KEEL,Keel Infrastructure Corp.,,0001812477,False,True,False,4
+KNDI,"Kandi Technologies Group, Inc.",,0001720250,False,True,False,4
+KOYN,CSLM Digital Asset Acquisition Corp III,,0002068454,False,True,False,4
+LAFA,LaFayette Acquisition Corp.,,0002079106,False,True,False,4
+LAWR,"Robot Consulting Co., Ltd.",,0002007599,False,True,False,4
+LBGJ,Li Bang International Corporation Inc.,,0001896425,False,True,False,4
+LLYVA,"Liberty Live Holdings, Inc.",,0002078416,False,True,False,4
+LLYVK,"Liberty Live Holdings, Inc.",,0002078416,False,True,False,4
+LSE,"Leishen Energy Holding Co., Ltd.",,0001985139,False,True,False,4
+MDLN,Medline Inc.,,0002046386,False,True,False,4
+MEGL,Magic Empire Global Limited,,0001881472,False,True,False,4
+MF,MindForge Inc.,,0001888525,False,True,False,4
+MKDW,MKDWELL Tech Inc.,,0001991332,False,True,False,4
+MLCI,Mount Logan Capital Inc.,,0002051820,False,True,False,4
+MNDR,Mobile-health Network Solutions,,0001976695,False,True,False,4
+MSGY,Masonglory Limited,,0002020228,False,True,False,4
+MTEN,Mingteng International Corporation Inc.,,0001948099,False,True,False,4
+NCEW,New Century Logistics (BVI) Limited,,0001968043,False,True,False,4
+NNNN,Anbio Biotechnology,,0001982708,False,True,False,4
+NRSN,NeuroSense Therapeutics Ltd.,,0001875091,False,True,False,4
+NTCL,NETCLASS TECHNOLOGY INC,,0001927578,False,True,False,4
+NUCL,Eagle Nuclear Energy Corp.,,0002089283,False,True,False,4
+OFAL,OFA Group,,0002036307,False,True,False,4
+OMH,Ohmyhome Limited,,0001944902,False,True,False,4
+ONEG,OneConstruction Group Limited,,0002030834,False,True,False,4
+PFAI,Pinnacle Food Group Limited,,0002032755,False,True,False,4
+PLRZ,Polyrizon Ltd.,,0001893645,False,True,False,4
+PMA,Ming Shing Group Holdings Limited,,0001956166,False,True,False,4
+PSIG,PS International Group Ltd.,,0001997201,False,True,False,4
+PTLE,PTL LTD,,0002016337,False,True,False,4
+QUCY,Quantum Cyber N.V.,,0001874252,False,True,False,4
+SKK,SKK Holdings Limited,,0001991261,False,True,False,4
+SORA,AsiaStrategy,,0002033515,False,True,False,4
+SPTX,"Seaport Therapeutics, Inc.",,0002042347,False,True,False,4
+SUPX,SuperX AI Technology Limited,,0001897087,False,True,False,4
+TDTH,Trident Digital Tech Holdings Ltd,,0001983550,False,True,False,4
+TTRX,Turn Therapeutics Inc.,,0002023016,False,True,False,4
+UCAR,U Power Limited,,0001939780,False,True,False,4
+UFG,Uni-Fuels Holdings Limited,,0002021688,False,True,False,4
+VNME,Vendome Acquisition Corporation I,,0002055879,False,True,False,4
+VSNT,"Versant Media Group, Inc.",,0002067876,False,True,False,4
+WCT,Wellchange Holdings Company Limited,,0001990251,False,True,False,4
+WFF,WF Holding Limited,,0001980210,False,True,False,4
+WOK,WORK Medical Technology Group LTD,,0001929783,False,True,False,4
+WTF,Waton Financial Limited,,0001987363,False,True,False,4
+WXM,WF International Limited,,0001979610,False,True,False,4
+XCH,XCHG Limited,,0001979887,False,True,False,4
+YAAS,Youxin Technology Ltd,,0001964946,False,True,False,4
+YSXT,"YSX Tech. Co., Ltd",,0001993463,False,True,False,4
+ZDAI,"DirectBooking Technology Co., Ltd.",,0001966678,False,True,False,4
+ZJK,"ZJK Industrial Co., Ltd.",,0001941506,False,True,False,4
+ZNB,Zeta Network Group,,0001747661,False,True,False,4
+AACB,Artius II Acquisition Inc.,,0002034334,False,True,False,5
+ABLV,Able View Global Inc.,,0001957489,False,True,False,5
+AGMH,AGM Group Holdings Inc.,,0001705402,False,True,False,5
+AXG,Solowin Holdings,,0001959224,False,True,False,5
+BANL,CBL International Limited,,0001914805,False,True,False,5
+BLLN,"BillionToOne, Inc.",,0002070849,False,True,False,5
+BLUW,Blue Water Acquisition Corp. III,,0002050501,False,True,False,5
+BLUWU,Blue Water Acquisition Corp. III,,0002050501,False,True,False,5
+BLUWW,Blue Water Acquisition Corp. III,,0002050501,False,True,False,5
+BSAA,BEST SPAC I Acquisition Corp.,,0002051587,False,True,False,5
+BTOG,Bit Origin Limited,,0001735556,False,True,False,5
+BVC,BitVentures Limited,,0001785680,False,True,False,5
+BZ,KANZHUN LIMITED,,0001842827,False,True,False,5
+CABR,"Caring Brands, Inc.",,0002020737,False,True,False,5
+CCG,Cheche Group Inc.,,0001965473,False,True,False,5
+CCII,Cohen Circle Acquisition Corp. II,,0002064683,False,True,False,5
+CCTG,CCSC Technology International Holdings Limited,,0001931717,False,True,False,5
+CDTG,CDT Environmental Technology Investment Holdings Limited,,0001793895,False,True,False,5
+CLPS,CLPS Incorporation,,0001724542,False,True,False,5
+CPOP,"Pop Culture Group Co., Ltd",,0001807389,False,True,False,5
+CRAQ,Cal Redwood Acquisition Corp.,,0002058359,False,True,False,5
+DMII,Drugs Made In America Acquisition II Corp.,,0002040475,False,True,False,5
+DOGZ,Dogness (International) Corporation,,0001707303,False,True,False,5
+DRDB,Roman DBDR Acquisition Corp. II,,0002032528,False,True,False,5
+EDTK,Skillful Craftsman Education Technology Limited,,0001782309,False,True,False,5
+EGHA,EGH Acquisition Corp.,,0002052547,False,True,False,5
+EHGO,Eshallgo Inc.,,0001879754,False,True,False,5
+EJH,E-Home Household Service Holdings Limited,,0001769768,False,True,False,5
+EZGO,EZGO Technologies Ltd.,,0001806904,False,True,False,5
+FAC,Factorial Energy Inc.,,0002049662,False,True,False,5
+FERA,Fifth Era Acquisition Corp I,,0002025401,False,True,False,5
+FIGR,"Figure Technology Solutions, Inc.",,0002064124,False,True,False,5
+FRMI,Fermi Inc.,,0002071778,False,True,False,5
+FUFU,BitFuFu Inc.,,0001921158,False,True,False,5
+FXHO,UTime Limited,,0001789299,False,True,False,5
+GDHG,Golden Heaven Group Holdings Ltd.,,0001928340,False,True,False,5
+GEMI,"Gemini Space Station, Inc.",,0002055592,False,True,False,5
+GMM,Global Mofy AI Limited,,0001913749,False,True,False,5
+GSIW,Garden Stage Limited,,0001954269,False,True,False,5
+GTERA,Globa Terra Acquisition Corporation,,0002043766,False,True,False,5
+GVH,Globavend Holdings Limited,,0001978527,False,True,False,5
+IGIC,International General Insurance Holdings Ltd.,,0001794338,False,True,False,5
+KCHV,Kochav Defense Acquisition Corp.,,0002053799,False,True,False,5
+KXIN,Kaixin Holdings,,0001713539,False,True,False,5
+LCCC,Lakeshore Acquisition III Corp.,,0002049248,False,True,False,5
+LOBO,LOBO TECHNOLOGIES LTD.,,0001932072,False,True,False,5
+MAAS,Maase Inc.,,0001750264,False,True,False,5
+MGIH,Millennium Group International Holdings Limited,,0001903995,False,True,False,5
+NHIC,NewHold Investment Corp III,,0002043699,False,True,False,5
+NIVF,NewGenIvf Group Limited,,0001981662,False,True,False,5
+NMP,NMP Acquisition Corp.,,0002054876,False,True,False,5
+NNOX,NANO-X IMAGING LTD,,0001795251,False,True,False,5
+NPAC,New Providence Acquisition Corp. III,,0002048948,False,True,False,5
+OBA,Oxley Bridge Acquisition Limited,,0002034313,False,True,False,5
+ODD,ODDITY Tech Ltd.,,0001907085,False,True,False,5
+ONCH,1RT Acquisition Corp.,,0002054272,False,True,False,5
+PAVS,Paranovus Entertainment Technology Ltd.,,0001751876,False,True,False,5
+PCAP,ProCap Acquisition Corp,,0002056634,False,True,False,5
+PRZO,ParaZero Technologies Ltd.,,0001916241,False,True,False,5
+QUMS,Quantumsphere Acquisition Corp.,,0002070900,False,True,False,5
+RANG,Range Capital Acquisition Corp.,,0002035644,False,True,False,5
+RCON,"Recon Technology, Ltd.",,0001442620,False,True,False,5
+RGC,Regencell Bioscience Holdings Limited,,0001829667,False,True,False,5
+RIBB,Ribbon Acquisition Corp,,0002035016,False,True,False,5
+RTAC,Renatus Tactical Acquisition Corp I,,0002035173,False,True,False,5
+RVSN,Rail Vision Ltd.,,0001743905,False,True,False,5
+SNT,Senstar Technologies Corporation,,0001993727,False,True,False,5
+SSEA,Starry Sea Acquisition Corp,,0002059165,False,True,False,5
+TACO,Berto Acquisition Corp.,,0002033122,False,True,False,5
+TMS,Teamshares Inc.,,0002048951,False,True,False,5
+TORO,Toro Corp.,,0001941131,False,True,False,5
+TRSG,Tungray Technologies Inc,,0001943444,False,True,False,5
+TVA,Texas Ventures Acquisition III Corp,,0002033991,False,True,False,5
+TWG,Top Wealth Group Holding Limited,,0001978057,False,True,False,5
+UZX,Linkage Global Inc,,0001969401,False,True,False,5
+VSME,VS Media Holdings Limited,,0001951294,False,True,False,5
+WBUY,WEBUY GLOBAL LTD.,,0001946703,False,True,False,5
+WLTH,Wealthfront Corporation,,0001524566,False,True,False,5
+YIBO,Planet Image International Limited,,0001868395,False,True,False,5
+ZJYL,JIN MEDICAL INTERNATIONAL LTD.,,0001837821,False,True,False,5
+ADAG,Adagene Inc.,,0001818838,False,True,False,6
+AFRI,Forafric Global PLC,,0001903870,False,True,False,6
+AIFU,AIFU Inc.,,0001413855,False,True,False,6
+AIOS,AIOS Tech Inc.,,0001603993,False,True,False,6
+APAC,StoneBridge Acquisition II Corporation,,0002043630,False,True,False,6
+API,"Agora, Inc.",,0001802883,False,True,False,6
+ASML,ASML Holding N.V.,,0000937966,False,True,False,6
+ATII,Archimedes Tech SPAC Partners II Co.,,0002028516,False,True,False,6
+AUDC,AudioCodes Ltd.,,0001086434,False,True,False,6
+BAOS,Baosheng Media Group Holdings Limited,,0001811216,False,True,False,6
+BDCI,BTC Development Corp.,,0002042292,False,True,False,6
+BGM,BGM Group Ltd.,,0001779578,False,True,False,6
+BMR,Beamr Imaging Ltd.,,0001899005,False,True,False,6
+BON,Bon Natural Life Limited,,0001816815,False,True,False,6
+BOSC,B.O.S. Better Online Solutions,,0001005516,False,True,False,6
+BRCB,"Black Rock Coffee Bar, Inc.",,0002068577,False,True,False,6
+BULL,Webull Corporation,,0001866364,False,True,False,6
+CAPN,Cayson Acquisition Corp,,0002024203,False,True,False,6
+CAST,"FreeCast, Inc.",,0001633369,False,True,False,6
+CCAQ,Collective Acquisition Corp.,,0002041047,False,True,False,6
+CEPF,"Cantor Equity Partners IV, Inc.",,0002034267,False,True,False,6
+CGEN,Compugen Ltd.,,0001119774,False,True,False,6
+CGNT,Cognyte Software Ltd.,,0001824814,False,True,False,6
+CHEC,Chenghe Acquisition III Co.,,0002047177,False,True,False,6
+CHKP,Check Point Software Technologies Ltd.,,0001015922,False,True,False,6
+CHR,"Cheer Holding, Inc.",,0001738758,False,True,False,6
+CHSN,Chanson International Holding,,0001825349,False,True,False,6
+CIGI,Colliers International Group Inc.,,0000913353,False,True,False,6
+CLBT,Cellebrite DI Ltd.,,0001854587,False,True,False,6
+CLGN,CollPlant Biotechnologies Ltd.,,0001631487,False,True,False,6
+CLWT,Euro Tech Holdings Company Limited,,0001026662,False,True,False,6
+CNEY,CN Energy Group Inc.,,0001780785,False,True,False,6
+CRNT,Ceragon Networks Ltd.,,0001119769,False,True,False,6
+CSIQ,Canadian Solar Inc.,,0001375877,False,True,False,6
+CSTE,Caesarstone Ltd.,,0001504379,False,True,False,6
+CTRM,Castor Maritime Inc.,,0001720161,False,True,False,6
+DAAQ,Digital Asset Acquisition Corp.,,0002052162,False,True,False,6
+DMAA,Drugs Made In America Acquisition Corp.,,0002028614,False,True,False,6
+DPU,Top KingWin Ltd,,0001938865,False,True,False,6
+DRTS,Alpha Tau Medical Ltd.,,0001871321,False,True,False,6
+DSGX,The Descartes Systems Group Inc.,,0001050140,False,True,False,6
+DSWL,"Deswell Industries, Inc.",,0000946936,False,True,False,6
+DUO,Fangdd Network Group Ltd.,,0001750593,False,True,False,6
+DYNC,Dynamix Corporation,,0002028699,False,True,False,6
+EBON,Ebang International Holdings Inc.,,0001799290,False,True,False,6
+EEIQ,EpicQuest Education Group International Limited,,0001781397,False,True,False,6
+EH,EHang Holdings Limited,,0001759783,False,True,False,6
+ELTK,Eltek Ltd.,,0001024672,False,True,False,6
+EPOW,E-Power Inc.,,0001780731,False,True,False,6
+ESEA,Euroseas Ltd.,,0001341170,False,True,False,6
+ESLT,Elbit Systems Ltd.,,0001027664,False,True,False,6
+FACT,FACT II Acquisition Corp.,,0002028935,False,True,False,6
+FAMI,"Farmmi, Inc.",,0001701261,False,True,False,6
+FSV,FirstService Corporation,,0001637810,False,True,False,6
+GASS,"StealthGas, Inc.",,0001328919,False,True,False,6
+GIGM,GigaMedia Limited,,0001105101,False,True,False,6
+GILT,Gilat Satellite Networks Ltd.,,0000897322,False,True,False,6
+GLBE,Global-E Online Ltd.,,0001835963,False,True,False,6
+GLNG,Golar LNG Limited,,0001207179,False,True,False,6
+GSHR,Gesher Acquisition Corp. II,,0002044635,False,True,False,6
+GSUN,Golden Sun Technology Group Limited,,0001826376,False,True,False,6
+HAVA,Harvard Ave Acquisition Corporation,,0002042460,False,True,False,6
+HAVAR,Harvard Ave Acquisition Corporation,,0002042460,False,True,False,6
+HDRN,"Hadron Energy, Inc.",,0002023730,False,True,False,6
+HIHO,Highway Holdings Limited,,0001026785,False,True,False,6
+HKIT,Hitek Global Inc.,,0001742341,False,True,False,6
+HLP,Hongli Group Inc.,,0001855557,False,True,False,6
+HTCO,High-Trend International Group,,0001928948,False,True,False,6
+HUDI,"Huadi International Group Co., Ltd.",,0001791725,False,True,False,6
+HVII,Hennessy Capital Investment Corp. VII,,0001846416,False,True,False,6
+ICCM,IceCure Medical Ltd.,,0001584371,False,True,False,6
+IFBD,"Infobird Co., Ltd",,0001815566,False,True,False,6
+ILAG,Intelligent Living Application Group Inc.,,0001814963,False,True,False,6
+IMPP,Imperial Petroleum Inc.,,0001876581,False,True,False,6
+IMPPP,Imperial Petroleum Inc.,,0001876581,False,True,False,6
+INAC,Indigo Acquisition Corp.,,0002063816,False,True,False,6
+INMD,InMode Ltd.,,0001742692,False,True,False,6
+INVZ,Innoviz Technologies Ltd.,,0001835654,False,True,False,6
+IPCX,Inflection Point Acquisition Corp. III,,0002012318,False,True,False,6
+IPEX,Inflection Point Acquisition Corp.,,0002028355,False,True,False,6
+ITRN,Ituran Location and Control Ltd.,,0001337117,False,True,False,6
+JCSE,JE Cleantech Holdings Limited,,0001905511,False,True,False,6
+JWEL,Jowell Global Ltd.,,0001805594,False,True,False,6
+KFII,K&F Growth Acquisition Corp. II,,0002029976,False,True,False,6
+KRNT,Kornit Digital Ltd.,,0001625791,False,True,False,6
+LAES,SEALSQ Corp,,0001951222,False,True,False,6
+LICN,Lichen International Limited,,0001876766,False,True,False,6
+LPBB,Launch Two Acquisition Corp.,,0002023676,False,True,False,6
+MNDO,MIND C.T.I. Ltd.,,0001119083,False,True,False,6
+MNDY,monday.com Ltd.,,0001845338,False,True,False,6
+MRLN,"Merlin, Inc.",,0002028707,False,True,False,6
+MTC,"MMTec, Inc.",,0001742518,False,True,False,6
+MTEK,Maris-Tech Ltd.,,0001872964,False,True,False,6
+NBIS,Nebius Group N.V.,,0001513845,False,True,False,6
+NCEL,NewcelX Ltd.,,0001783036,False,True,False,6
+NCTY,The9 Limited,,0001296774,False,True,False,6
+NEGG,"Newegg Commerce, Inc.",,0001474627,False,True,False,6
+NEXR,Nexera Technologies Ltd,,0001885408,False,True,False,6
+NTWO,Newbury Street II Acquisition Corp,,0002028027,False,True,False,6
+NUTR,Nusatrip Incorporated,,0002006468,False,True,False,6
+NVMI,Nova Ltd.,,0001109345,False,True,False,6
+OACC,Oaktree Acquisition Corp. III Life Sciences,,0002029769,False,True,False,6
+OCG,Oriental Culture Holding LTD,,0001776067,False,True,False,6
+ORIQ,Origin Investment Corp I,,0002044523,False,True,False,6
+ORIQW,Origin Investment Corp I,,0002044523,False,True,False,6
+OST,"Ostin Technology Group Co., Ltd.",,0001803407,False,True,False,6
+OYSE,Oyster Enterprises II Acquisition Corp,,0002042182,False,True,False,6
+PACH,Pioneer Acquisition I Corp,,0002040381,False,True,False,6
+PERI,Perion Network Ltd,,0001338940,False,True,False,6
+PETZ,"TDH Holdings, Inc.",,0001684425,False,True,False,6
+PGAC,Pantages Capital Acquisition Corporation,,0002030829,False,True,False,6
+PLMK,Plum Acquisition Corp. IV,,0002030482,False,True,False,6
+POLE,Andretti Acquisition Corp. II,,0002025341,False,True,False,6
+PSHG,Performance Shipping Inc.,,0001481241,False,True,False,6
+PXS,Pyxis Tankers Inc.,,0001640043,False,True,False,6
+PYPD,PolyPid Ltd.,,0001611842,False,True,False,6
+QH,Quhuo Limited,,0001781193,False,True,False,6
+QSEA,Quartzsea Acquisition Corporation,,0002047455,False,True,False,6
+RAYA,Erayak Power Solution Group Inc.,,0001825875,False,True,False,6
+RDCM,Radcom Ltd.,,0001016838,False,True,False,6
+RDGT,"Ridgetech, Inc.",,0001856084,False,True,False,6
+RDWR,Radware Ltd.,,0001094366,False,True,False,6
+RETO,"ReTo Eco-Solutions, Inc.",,0001687277,False,True,False,6
+SBLK,Star Bulk Carriers Corp.,,0001386716,False,True,False,6
+SDA,SunCar Technology Group Inc.,,0001936804,False,True,False,6
+SDHI,Siddhi Acquisition Corp,,0002034037,False,True,False,6
+SEED,Origin Agritech Limited,,0001321851,False,True,False,6
+SFWL,Shengfeng Development Limited,,0001863218,False,True,False,6
+SHIP,Seanergy Maritime Holdings Corp.,,0001448397,False,True,False,6
+SILC,Silicom Ltd,,0000916793,False,True,False,6
+SJ,Scienjoy Holding Corporation,,0001753673,False,True,False,6
+SLGL,Sol-Gel Technologies Ltd.,,0001684693,False,True,False,6
+SNTG,Sentage Holdings Inc.,,0001810467,False,True,False,6
+SPCB,"SuperCom, Ltd.",,0001291855,False,True,False,6
+SPEG,Silver Pegasus Acquisition Corp,,0002028735,False,True,False,6
+SVA,"Sinovac Biotech, Ltd.",,0001084201,False,True,False,6
+SVCC,Stellar V Capital Corp.,,0002033593,False,True,False,6
+SXTC,"China SXT Pharmaceuticals, Inc.",,0001723980,False,True,False,6
+SY,So-Young International Inc.,,0001758530,False,True,False,6
+SZZL,Sizzle Acquisition Corp. II,,0002030663,False,True,False,6
+TANH,Tantech Holdings Ltd.,,0001588084,False,True,False,6
+TAOP,Taoping Inc.,,0001552670,False,True,False,6
+THCH,TH International Limited,,0001877333,False,True,False,6
+TOP,TOP Financial Group Limited,,0001848275,False,True,False,6
+TROO,"TROOPS, Inc.",,0001412095,False,True,False,6
+TSEM,Tower Semiconductor Ltd.,,0000928876,False,True,False,6
+TVAI,Thayer Ventures Acquisition Corporation II,,0001872228,False,True,False,6
+UK,Ucommune International Ltd,,0001821424,False,True,False,6
+UPC,Universe Pharmaceuticals Inc,,0001809616,False,True,False,6
+UTSI,UTStarcom Holdings Corp,,0001030471,False,True,False,6
+WAFU,Wah Fu Education Group Limited,,0001716770,False,True,False,6
+WIMI,WiMi Hologram Cloud Inc.,,0001770088,False,True,False,6
+WIX,Wix.com Ltd.,,0001576789,False,True,False,6
+WLDS,Wearable Devices Ltd.,,0001887673,False,True,False,6
+WNW,Meiwu Technology Company Limited,,0001787803,False,True,False,6
+WPRT,Westport Fuel Systems Inc,,0001370416,False,True,False,6
+WTG,Wintergreen Acquisition Corp.,,0002053927,False,True,False,6
+XRPN,Armada Acquisition Corp. II,,0002044009,False,True,False,6
+YDKG,Yueda Digital Holding,,0001413745,False,True,False,6
+YJ,Yunji Inc.,,0001759614,False,True,False,6
+ZCMD,Zhongchao Inc.,,0001785566,False,True,False,6
+ZKIN,"ZK International Group Co., Ltd",,0001687451,False,True,False,6
+ABTS,Abits Group Inc,,0001864055,False,True,False,7
+AIRO,"AIRO Group Holdings, Inc.",,0001927958,False,True,False,7
+ALF,Centurion Acquisition Corp.,,0002010930,False,True,False,7
+AVBH,"Avidbank Holdings, Inc.",,0001443575,False,True,False,7
+CAMT,Camtek Ltd.,,0001109138,False,True,False,7
+CD,Chaince Digital Holdings Inc.,,0001527762,False,True,False,7
+CEPV,"Cantor Equity Partners V, Inc.",,0002034266,False,True,False,7
+CHAR,Charlton Aria Acquisition Corporation,,0002024459,False,True,False,7
+CHPG,ChampionsGate Acquisition Corporation,,0002024460,False,True,False,7
+COLA,Columbus Acquisition Corp,,0002028201,False,True,False,7
+CUB,Lionheart Holdings,,0002015955,False,True,False,7
+DAIC,"CID HoldCo, Inc.",,0002033770,False,True,False,7
+FVN,Future Vision II Acquisition Corporation,,0002010653,False,True,False,7
+GLIBA,Liberty Capital Corporation,,0002057463,False,True,False,7
+GLIBK,Liberty Capital Corporation,,0002057463,False,True,False,7
+GSRF,GSR IV Acquisition Corp.,,0002072404,False,True,False,7
+IMSR,Terrestrial Energy Inc.,,0002019804,False,True,False,7
+JZXN,"Jiuzi Holdings, Inc.",,0001816172,False,True,False,7
+KG,"Kestrel Group, Ltd.",,0002055116,False,True,False,7
+LKSP,Lake Superior Acquisition Corp.,,0002043508,False,True,False,7
+LPAA,Launch One Acquisition Corp.,,0002015502,False,True,False,7
+MACI,Melar Acquisition Corp. I,,0002016221,False,True,False,7
+NBRG,Newbridge Acquisition Limited,,0001918414,False,True,False,7
+NKLR,Terra Innovatum Global N.V.,,0002067627,False,True,False,7
+RDAC,Rising Dragon Acquisition Corp.,,0002018145,False,True,False,7
+RFAI,RF Acquisition Corp II,,0002012807,False,True,False,7
+SAFX,"XCF Global, Inc.",,0002019793,False,True,False,7
+SAIH,SAIHEAT Limited,,0001847075,False,True,False,7
+SIMA,SIM Acquisition Corp. I,,0002014982,False,True,False,7
+TAVI,Tavia Acquisition Corp.,,0002020385,False,True,False,7
+VLOS,Velos Acquisition I Corp.,,0002016072,False,True,False,7
+ALDF,Aldel Financial II Inc.,,0002031561,False,True,False,8
+ALLT,Allot Ltd.,,0001365767,False,True,False,8
+ASPC,A SPAC III Acquisition Corp.,,0001890361,False,True,False,8
+CAI,"Caris Life Sciences, Inc.",,0002019410,False,True,False,8
+CEPO,"Cantor Equity Partners I, Inc.",,0002027708,False,True,False,8
+FRGT,"Freight Technologies, Inc.",,0001687542,False,True,False,8
+FRNM,"Freenome, Inc.",,0002017526,False,True,False,8
+JCAP,"Jefferson Capital, Inc.",,0002046042,False,True,False,8
+SLDE,"Slide Insurance Holdings, Inc.",,0001886428,False,True,False,8
+SOLS,Solstice Advanced Materials Inc.,,0002064953,False,True,False,8
+TATT,TAT Technologies Ltd.,,0000808439,False,True,False,8
+UNIT,Uniti Group Inc.,,0002020795,False,True,False,8
+UYSC,UY Scuti Acquisition Corp.,,0002036973,False,True,False,8
+VTIX,Virtuix Holdings Inc.,,0001606242,False,True,False,8
+VWAV,"VisionWave Holdings, Inc.",,0002038439,False,True,False,8
+AARD,"Aardvark Therapeutics, Inc.",,0001774857,False,True,False,9
+ADGM,"Adagio Medical Holdings, Inc",,0002006986,False,True,False,9
+ADVB,Advanced Biomed Inc.,,0001941029,False,True,False,9
+AFJK,"Aimei Health Technology Co., Ltd",,0001979005,False,True,False,9
+ARAI,Arrive AI Inc.,,0001818274,False,True,False,9
+AVR,Anteris Technologies Global Corp.,,0002011514,False,True,False,9
+CARL,"Carlsmed, Inc.",,0001794546,False,True,False,9
+CURX,Curanex Pharmaceuticals Inc,,0002025942,False,True,False,9
+CV,"CapsoVision, Inc.",,0001378325,False,True,False,9
+ELWT,"Elauwit Connection, Inc.",,0002063863,False,True,False,9
+ETS,Elite Express Holding Inc.,,0002053641,False,True,False,9
+EUDA,Euda Health Holdings Limited,,0001847846,False,True,False,9
+FUSE,Fusemachines Inc.,,0002033383,False,True,False,9
+GBFH,GBank Financial Holdings Inc.,,0001791145,False,True,False,9
+HIVE,HIVE Digital Technologies Ltd,,0001720424,False,True,False,9
+IREN,IREN Limited,,0001878848,False,True,False,9
+JFB,JFB Construction Holdings,,0002024306,False,True,False,9
+KMTS,"Kestra Medical Technologies, Ltd.",,0001877184,False,True,False,9
+LBRX,LB Pharmaceuticals Inc,,0001691082,False,True,False,9
+LIMN,"Liminatus Pharma, Inc.",,0001971387,False,True,False,9
+LSBK,"Lake Shore Bancorp, Inc.",,0002059653,False,True,False,9
+MAZE,"Maze Therapeutics, Inc.",,0001842295,False,True,False,9
+MBAI,Check-Cap Ltd.,,0001610590,False,True,False,9
+MEDS,"DataMeds AI, Inc.",,0002030763,False,True,False,9
+MMED,"MiniMed Group, Inc.",,0002062583,False,True,False,9
+MPLT,"MapLight Therapeutics, Inc.",,0001770069,False,True,False,9
+NOMA,NOMADAR Corp.,,0001994214,False,True,False,9
+NTHI,"NeOnc Technologies Holdings, Inc.",,0001979414,False,True,False,9
+REAX,"The Real Brokerage, Inc.",,0001862461,False,True,False,9
+SEV,Aptera Motors Corp.,,0001786471,False,True,False,9
+SION,"Sionna Therapeutics, Inc.",,0002036042,False,True,False,9
+TACH,Titan Acquisition Corp.,,0002009183,False,True,False,9
+VHUB,"VenHub Global, Inc.",,0001972234,False,True,False,9
+WALD,Waldencast plc,,0001840199,False,True,False,9
+WSBK,"Winchester Bancorp, Inc.",,0002047235,False,True,False,9
+WYFI,"WhiteFiber, Inc.",,0002042022,False,True,False,9
+YHNA,YHN Acquisition I Limited,,0002020987,False,True,False,9
+AEBI,Aebi Schmidt Holding AG,,0002048519,False,True,False,10
+ATHR,"Aether Holdings, Inc.",,0002026353,False,True,False,10
+BBOT,"BridgeBio Oncology Therapeutics, Inc.",,0001869105,False,True,False,10
+BKHA,Black Hawk Acquisition Corporation,,0002000775,False,True,False,10
+BXBL,"BOXABL, Inc.",,0001906364,False,True,False,10
+CAPS,Capstone Holding Corp.,,0000887151,False,True,False,10
+CHYM,"Chime Financial, Inc.",,0001795586,False,True,False,10
+CJMB,Callan JMB Inc.,,0002032545,False,True,False,10
+CNTB,Connect Biopharma Holdings Limited,,0001835268,False,True,False,10
+CRWV,"CoreWeave, Inc.",,0001769628,False,True,False,10
+CSAI,"Cloudastructure, Inc.",,0001709628,False,True,False,10
+FATN,"FatPipe, Inc.",,0001993400,False,True,False,10
+FLY,Firefly Aerospace Inc.,,0001860160,False,True,False,10
+GLOO,"Gloo Holdings, Inc.",,0002069785,False,True,False,10
+GLXY,Galaxy Digital Inc.,,0001859392,False,True,False,10
+GTEN,"Gores Holdings X, Inc.",,0001986817,False,True,False,10
+HIT,"Health In Tech, Inc.",,0002019505,False,True,False,10
+HODO,House of Doge Inc.,,0001903595,False,True,False,10
+HTFL,"Heartflow, Inc.",,0001464521,False,True,False,10
+IPST,"IP Strategy Holdings, Inc.",,0001788230,False,True,False,10
+KIDZ,KIDZ AI Inc.,,0002022308,False,True,False,10
+LGN,Legence Corp.,,0002052568,False,True,False,10
+LHAI,Linkhome Holdings Inc.,,0002017758,False,True,False,10
+MDCX,Medicus Pharma Ltd.,,0001997296,False,True,False,10
+NAVN,"Navan, Inc.",,0001639723,False,True,False,10
+NOEM,CO2 Energy Transition Corp.,,0001956648,False,True,False,10
+NTSK,"Netskope, Inc.",,0002063196,False,True,False,10
+NUAI,"New Era Energy & Digital, Inc.",,0002028336,False,True,False,10
+OMDA,"Omada Health, Inc.",,0001611115,False,True,False,10
+PAL,"Proficient Auto Logistics, Inc.",,0001998768,False,True,False,10
+PROF,Profound Medical Corp.,,0001628808,False,True,False,10
+PTRN,Pattern Group Inc.,,0001811935,False,True,False,10
+RAIN,"Rain Enhancement Technologies Holdco, Inc.",,0002028293,False,True,False,10
+SAIL,"SailPoint, Inc.",,0002030781,False,True,False,10
+SSM,Sono Group N.V.,,0001840416,False,True,False,10
+SUNS,"Sunrise Realty Trust, Inc.",,0002012706,False,True,False,10
+TDAC,Translational Development Acquisition Corp.,,0001926599,False,True,False,10
+VNOM,"Viper Energy, Inc.",,0002074176,False,True,False,10
+XHLD,"TEN Holdings, Inc.",,0002030954,False,True,False,10
+ACOG,Alpha Cognition Inc.,,0001655923,False,True,False,11
+BBNX,"Beta Bionics, Inc.",,0001674632,False,True,False,11
+BEAG,Bold Eagle Acquisition Corp.,,0001852207,False,True,False,11
+CLMT,"Calumet, Inc",,0002013745,False,True,False,11
+DDI,"DoubleDown Interactive Co., Ltd.",,0001799567,False,True,False,11
+ENLV,Enlivex Ltd.,,0001596812,False,True,False,11
+EU,enCore Energy Corp.,,0001500881,False,True,False,11
+NEUP,Neuphoria Therapeutics Inc.,,0001191070,False,True,False,11
+PUSA,Aureus Greenway Holdings Inc.,,0002009312,False,True,False,11
+QETA,Quetta Acquisition Corporation,,0001978528,False,True,False,11
+SFD,"Smithfield Foods, Inc.",,0000091388,False,True,False,11
+SLN,Silence Therapeutics Plc,,0001479615,False,True,False,11
+SLXN,Silexion Therapeutics Corp,,0002022416,False,True,False,11
+SPAI,Safe Pro Group Inc.,,0002011208,False,True,False,11
+USAR,"USA Rare Earth, Inc.",,0001970622,False,True,False,11
+ANSC,Agriculture & Natural Solutions Acquisition Corporation,,0001854149,False,True,False,12
+ARBE,Arbe Robotics Ltd.,,0001861841,False,True,False,12
+BTBT,"Bit Digital, Inc.",,0001710350,False,True,False,12
+BTCT,BTC Digital Ltd.,,0001796514,False,True,False,12
+BTOC,Armlogi Holding Corp.,,0001972529,False,True,False,12
+EURK,Eureka Acquisition Corp,,0002000410,False,True,False,12
+FOXX,Foxx Development Holdings Inc.,,0002013807,False,True,False,12
+HOLO,MicroCloud Hologram Inc.,,0001841209,False,True,False,12
+HOVR,New Horizon Aircraft Ltd.,,0001930021,False,True,False,12
+INDV,"Indivior Pharmaceuticals, Inc.",,0001625297,False,True,False,12
+MWYN,"Marwynn Holdings, Inc.",,0002030522,False,True,False,12
+NNE,Nano Nuclear Energy Inc.,,0001923891,False,True,False,12
+TLN,Talen Energy Corporation,,0001622536,False,True,False,12
+WBTN,WEBTOON Entertainment Inc.,,0001997859,False,True,False,12
+ACTU,"Actuate Therapeutics, Inc.",,0001652935,False,True,False,13
+ALMS,Alumis Inc.,,0001847367,False,True,False,13
+AMCI,AMC Robotics Corporation,,0001937891,False,True,False,13
+ARTV,"Artiva Biotherapeutics, Inc.",,0001817241,False,True,False,13
+AVBP,"ArriVent BioPharma, Inc.",,0001868279,False,True,False,13
+BCAX,Bicara Therapeutics Inc.,,0002023658,False,True,False,13
+BCG,"Binah Capital Group, Inc.",,0001953984,False,True,False,13
+BIOA,"BioAge Labs, Inc.",,0001709941,False,True,False,13
+BOLD,"Boundless Bio, Inc.",,0001782303,False,True,False,13
+CAMP,CAMP4 Therapeutics Corporation,,0001736730,False,True,False,13
+CBLL,"CeriBell, Inc.",,0001861107,False,True,False,13
+CGON,"CG Oncology, Inc.",,0001991792,False,True,False,13
+EXOZ,eXoZymes Inc.,,0002010788,False,True,False,13
+FBLA,"FB Bancorp, Inc.",,0002013639,False,True,False,13
+FBYD,"Falcon's Beyond Global, Inc.",,0001937987,False,True,False,13
+FDSB,"Fifth District Bancorp, Inc.",,0002012726,False,True,False,13
+FLYE,"Fly-E Group, Inc.",,0001975940,False,True,False,13
+FSHP,Flag Ship Acquisition Corp.,,0001850059,False,True,False,13
+GPAT,GP-Act III Acquisition Corp.,,0001834526,False,True,False,13
+GRAL,"GRAIL, Inc.",,0001699031,False,True,False,13
+GUTS,"Fractyl Health, Inc.",,0001572616,False,True,False,13
+INBX,"Inhibrx Biosciences, Inc.",,0002007919,False,True,False,13
+INV,"Innventure, Inc.",,0002001557,False,True,False,13
+IXHL,Incannex Healthcare Inc.,,0001873875,False,True,False,13
+JUNS,"Jupiter Neurosciences, Inc.",,0001679628,False,True,False,13
+KYTX,"Kyverna Therapeutics, Inc.",,0001994702,False,True,False,13
+MBX,"MBX Biosciences, Inc.",,0001776111,False,True,False,13
+MGX,"Metagenomi Therapeutics, Inc.",,0001785279,False,True,False,13
+MLGO,"MicroAlgo, Inc.",,0001800392,False,True,False,13
+NAKA,Nakamoto Inc.,,0001946573,False,True,False,13
+RAPP,"Rapport Therapeutics, Inc.",,0002012593,False,True,False,13
+SATL,Satellogic Inc.,,0001874315,False,True,False,13
+SEPN,"Septerna, Inc.",,0001984086,False,True,False,13
+SHOP,Shopify Inc.,,0001594805,False,True,False,13
+SKYQ,Sky Quarry Inc.,,0001812447,False,True,False,13
+SNYR,Synergy CHC Corp.,,0001562733,False,True,False,13
+SVCO,"Silvaco Group, Inc.",,0001943289,False,True,False,13
+TEM,"Tempus AI, Inc.",,0001717115,False,True,False,13
+UCFI,CN Healthy Food Tech Group Corp.,,0001901203,False,True,False,13
+UPB,"Upstream Bio, Inc.",,0002022626,False,True,False,13
+WAY,Waystar Holding Corp.,,0001990354,False,True,False,13
+ZBIO,"Zenas BioPharma, Inc.",,0001953926,False,True,False,13
+ALAB,"Astera Labs, Inc.",,0001736297,False,True,False,14
+CTNM,"Contineum Therapeutics, Inc.",,0001855175,False,True,False,14
+DTSQ,DT Cloud Star Acquisition Corporation,,0002017950,False,True,False,14
+ELAB,PMGC Holdings Inc.,,0001840563,False,True,False,14
+GAME,"GameSquare Holdings, Inc.",,0001714562,False,True,False,14
+IBAC,IB Acquisition Corp.,,0001998781,False,True,False,14
+LINE,"Lineage, Inc.",,0001868159,False,True,False,14
+LRHC,La Rosa Holdings Corp.,,0001879403,False,True,False,14
+MAMO,Massimo Group,,0001952853,False,True,False,14
+NAMS,NewAmsterdam Pharma Company N.V.,,0001936258,False,True,False,14
+NEXM,NexMetals Mining Corp.,,0000795800,False,True,False,14
+RENX,RenX Enterprises Corp.,,0001959023,False,True,False,14
+RR,Richtech Robotics Inc.,,0001963685,False,True,False,14
+SBET,"Sharplink, Inc.",,0001981535,False,True,False,14
+SHIM,Shimmick Corporation,,0001887944,False,True,False,14
+SMXT,Solarmax Technology Inc.,,0001519472,False,True,False,14
+TELO,"Telomir Pharmaceuticals, Inc.",,0001971532,False,True,False,14
+TTAN,"ServiceTitan, Inc.",,0001638826,False,True,False,14
+TTGT,"TechTarget, Inc.",,0002018064,False,True,False,14
+TWFG,"TWFG, Inc.",,0002007596,False,True,False,14
+VS,Versus Systems Inc.,,0001701963,False,True,False,14
+APGE,"Apogee Therapeutics, Inc.",,0001974640,False,True,False,15
+BATRA,"Atlanta Braves Holdings, Inc.",,0001958140,False,True,False,15
+BATRK,"Atlanta Braves Holdings, Inc.",,0001958140,False,True,False,15
+BOF,BranchOut Food Inc.,,0001962481,False,True,False,15
+BTSG,"BrightSpring Health Services, Inc.",,0001865782,False,True,False,15
+BTSGU,"BrightSpring Health Services, Inc.",,0001865782,False,True,False,15
+CURR,Currenc Group Inc.,,0001862935,False,True,False,15
+CVKD,"Cadrenal Therapeutics, Inc.",,0001937993,False,True,False,15
+ENGN,enGene Therapeutics Inc.,,0001980845,False,True,False,15
+FBLG,"FibroBiologics, Inc.",,0001958777,False,True,False,15
+GLMD,Galmed Pharmaceuticals Ltd.,,0001595353,False,True,False,15
+INGM,Ingram Micro Holding Corp,,0001897762,False,False,True,15
+INHD,Inno Holdings Inc.,,0001961847,False,True,False,15
+INTS,"Intensity Therapeutics, Inc.",,0001567264,False,True,False,15
+MDBH,"MDB Capital Holdings, LLC",,0001934642,False,True,False,15
+NWTG,"Newton Golf Company, Inc.",,0001934245,False,True,False,15
+SBC,SBC Medical Group Holdings Incorporated,,0001930313,False,True,False,15
+AIRE,reAlpha Tech Corp.,,0001859199,False,True,False,16
+AMIX,"Autonomix Medical, Inc.",,0001617867,False,True,False,16
+CPBI,"Central Plains Bancshares, Inc.",,0001979332,False,True,False,16
+CTOR,"Citius Oncology, Inc.",,0001851484,False,True,False,16
+GCT,GigaCloud Technology Inc,,0001857816,False,True,False,16
+GOAI,Eva Live Inc.,,0001983736,False,True,False,16
+HUT,Hut 8 Corp.,,0001964789,False,True,False,16
+ISPR,Ispire Technology Inc.,,0001948455,False,True,False,16
+LIEN,"Chicago Atlantic BDC, Inc.",,0001843162,False,True,False,16
+MSS,Maison Solutions Inc.,,0001892292,False,True,False,16
+PFX,PhenixFIN Corporation,,0001490349,False,True,False,16
+PODC,"PodcastOne, Inc.",,0001940177,False,True,False,16
+SBGI,"Sinclair, Inc.",,0001971213,False,True,False,16
+SRBK,"SR Bancorp, Inc.",,0001951276,False,True,False,16
+SUIG,Sui Group Holdings Limited,,0001425355,False,True,False,16
+ANNA,"AleAnna, Inc.",,0001845123,False,True,False,17
+ASST,"Strive, Inc.",,0001920406,False,True,False,17
+AUC,ATIF Holdings Limited,,0001755058,False,True,False,17
+BAER,"Bridger Aerospace Group Holdings, Inc.",,0001941536,False,True,False,17
+BCAL,California BanCorp,,0001795815,False,True,False,17
+BFRG,"Bullfrog AI Holdings, Inc.",,0001829247,False,True,False,17
+BVFL,"BV Financial, Inc.",,0001302387,False,True,False,17
+BYSI,"BeyondSpring, Inc.",,0001677940,False,True,False,17
+CDT,CDT Equity Inc.,,0001896212,False,True,False,17
+CENN,Cenntro Inc.,,0001707919,False,True,False,17
+COYA,"Coya Therapeutics, Inc.",,0001835022,False,True,False,17
+CTNT,Cheetah Net Supply Chain Service Inc.,,0001951667,False,True,False,17
+CWD,CaliberCos Inc.,,0001627282,False,True,False,17
+CXAI,CXApp Inc.,,0001820875,False,True,False,17
+DFDV,DeFi Development Corp.,,0001805526,False,True,False,17
+DOX,Amdocs Limited,,0001062579,False,True,False,17
+ELOX,"Eloxx Pharmaceuticals, Inc.",,0001035354,False,True,False,17
+FLD,"Fold Holdings, Inc.",,0001889123,False,True,False,17
+GENK,"GEN Restaurant Group, Inc.",,0001891856,False,True,False,17
+GITS,"Global Interactive Technologies, Inc. Common Stock",,0001911545,False,True,False,17
+GNLX,Genelux Corporation,,0001231457,False,True,False,17
+GXAI,Gaxos.ai Inc.,,0001895618,False,True,False,17
+IBEX,IBEX Limited,,0001720420,False,True,False,17
+ICMB,"Investcorp Credit Management BDC, Inc.",,0001578348,False,True,False,17
+KDK,"Kodiak AI, Inc.",,0001853138,False,True,False,17
+LXEO,"Lexeo Therapeutics, Inc.",,0001907108,False,True,False,17
+MGRX,"Mangoceuticals, Inc.",,0001938046,False,True,False,17
+MIRA,"MIRA Pharmaceuticals, Inc.",,0001904286,False,True,False,17
+MLYS,"Mineralys Therapeutics, Inc.",,0001933414,False,True,False,17
+NBBK,"NB Bancorp, Inc.",,0001979330,False,True,False,17
+NMRA,"Neumora Therapeutics, Inc.",,0001885522,False,True,False,17
+NWE,"NorthWestern Energy Group, Inc.",,0001993004,False,True,False,17
+OSRH,"OSR Health, Inc.",,0001840425,False,True,False,17
+PFSA,"Profusa, Inc.",,0001859807,False,True,False,17
+PGY,Pagaya Technologies Ltd.,,0001883085,False,True,False,17
+QTI,"QT Imaging Holdings, Inc.",,0001844505,False,True,False,17
+RDZN,"Roadzen, Inc.",,0001868640,False,True,False,17
+SGMT,Sagimet Biosciences Inc.,,0001400118,False,True,False,17
+SPKL,Spark I Acquisition Corp.,,0001884046,False,True,False,17
+SXTP,"60 Degrees Pharmaceuticals, Inc.",,0001946563,False,True,False,17
+TRNR,Interactive Strength Inc.,,0001785056,False,True,False,17
+TRON,Tron Inc.,,0001956744,False,True,False,17
+YHC,LQR House Inc.,,0001843165,False,True,False,17
