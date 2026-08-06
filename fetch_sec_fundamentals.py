@@ -40,7 +40,7 @@ import requests
 # --------------------------------------------------------------------------
 # Config
 # --------------------------------------------------------------------------
-UA = "Research Data Collection (attila.imecs@gmail.com)"
+UA = "StockPipelineDataCollector/1.0"
 BASE = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
 
 # 6, not 5. A 5-year window starting mid-2021 cannot complete fiscal 2021 for

@@ -40,7 +40,7 @@ import pandas as pd
 from ca_io import read_csv as ca_read_csv
 import requests
 
-UA = "Research Data Collection (attila.imecs@gmail.com)"
+UA = "StockPipelineDataCollector/1.0"
 BASE = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
 OUT_FILE = "data_annual_sec.csv"
 DONE_FILE = "_sec_ca_done.txt"

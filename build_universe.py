@@ -21,7 +21,7 @@ import time
 import pandas as pd
 import requests
 
-UA = {"User-Agent": "Research Data Collection (attila.imecs@gmail.com)"}
+UA = {"User-Agent": "StockPipelineDataCollector/1.0"}
 TIMEOUT = 45
 
 
