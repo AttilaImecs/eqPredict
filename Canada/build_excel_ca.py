@@ -505,7 +505,7 @@ def main():
     missing = [f for f in ("data_quarterly.csv", "data_monthly.csv", "data_snapshot.csv")
                if not os.path.exists(f)]
     if missing:
-        sys.exit(f"Missing {missing} -- run fetch_financials.py first")
+        sys.exit(f"Missing {missing} -- run the fetch scripts first")
 
     print("[excel] loading checkpoints ...")
     q = ca_read_csv("data_quarterly.csv").drop_duplicates(["ticker", "period_end"])

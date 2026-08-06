@@ -27,7 +27,7 @@ import difflib
 import pandas as pd
 import requests
 
-UA = {"User-Agent": "Research Data Collection (attila.imecs@gmail.com)"}
+UA = {"User-Agent": "StockPipelineDataCollector/1.0"}
 WIKI = "https://en.wikipedia.org/wiki/S%26P/TSX_Composite_Index"
 SEC_TICKERS = "https://www.sec.gov/files/company_tickers.json"
 OUT = "universe_ca.csv"

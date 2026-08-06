@@ -250,13 +250,11 @@ SLMT,Brera Holdings PLC,,0001939965,False,True,False,0
 SMX,SMX (Security Matters) Public Limited Company,,0001940674,False,True,False,0
 SNDL,SNDL Inc.,,0001766600,False,True,False,0
 SOPH,SOPHiA GENETICS SA,,0001840706,False,True,False,0
-SPCX,Space Exploration Technologies Corp.,,0001181412,False,True,False,0
 SRAD,Sportradar Group AG,,0001836470,False,True,False,0
 SSBI,Summit State Bank,,,False,True,False,0
 STKE,Sol Strategies Inc.,,0001846839,False,True,False,0
 STLN,"Starling Oncology Institute, Inc.",,,False,True,False,0
 STNE,StoneCo Ltd.,,0001745431,False,True,False,0
-SUJA,"Suja Life, Inc.",,0001934114,False,True,False,0
 SWVL,Swvl Holdings Corp,,0001875609,False,True,False,0
 TBLD,Thornburg Income Builder Opportunities Trust,,0001820378,False,True,False,0
 TDIC,Dreamland Limited,,0002041338,False,True,False,0
@@ -449,8 +447,10 @@ RNA,"Atrium Therapeutics, Inc.",,0002093101,False,True,False,2
 RNGT,Range Capital Acquisition Corp II,,0002078653,False,True,False,2
 SFHG,Samfine Creation Holdings Group Limited,,0001926792,False,True,False,2
 SORN,Soren Acquisition Corp.,,0002086263,False,True,False,2
+SPCX,Space Exploration Technologies Corp.,,0001181412,False,True,False,2
 SPHL,Springview Holdings Ltd,,0002002236,False,True,False,2
 SPPL,SIMPPLE LTD.,,0001948697,False,True,False,2
+SUJA,"Suja Life, Inc.",,0001934114,False,True,False,2
 SWMR,"Swarmer, Inc",,0002092574,False,True,False,2
 TDWD,Tailwind 2.0 Acquisition Corp.,,0002076616,False,True,False,2
 TJGC,TJGC Group Limited,,0001969928,False,True,False,2
@@ -915,7 +915,6 @@ CD,Chaince Digital Holdings Inc.,,0001527762,False,True,False,7
 CEPV,"Cantor Equity Partners V, Inc.",,0002034266,False,True,False,7
 CHAR,Charlton Aria Acquisition Corporation,,0002024459,False,True,False,7
 CHPG,ChampionsGate Acquisition Corporation,,0002024460,False,True,False,7
-COLA,Columbus Acquisition Corp,,0002028201,False,True,False,7
 CUB,Lionheart Holdings,,0002015955,False,True,False,7
 DAIC,"CID HoldCo, Inc.",,0002033770,False,True,False,7
 FVN,Future Vision II Acquisition Corporation,,0002010653,False,True,False,7
@@ -942,6 +941,7 @@ ALLT,Allot Ltd.,,0001365767,False,True,False,8
 ASPC,A SPAC III Acquisition Corp.,,0001890361,False,True,False,8
 CAI,"Caris Life Sciences, Inc.",,0002019410,False,True,False,8
 CEPO,"Cantor Equity Partners I, Inc.",,0002027708,False,True,False,8
+COLA,Columbus Acquisition Corp,,0002028201,False,True,False,8
 FRGT,"Freight Technologies, Inc.",,0001687542,False,True,False,8
 FRNM,"Freenome, Inc.",,0002017526,False,True,False,8
 JCAP,"Jefferson Capital, Inc.",,0002046042,False,True,False,8
@@ -1087,10 +1087,8 @@ MBX,"MBX Biosciences, Inc.",,0001776111,False,True,False,13
 MGX,"Metagenomi Therapeutics, Inc.",,0001785279,False,True,False,13
 MLGO,"MicroAlgo, Inc.",,0001800392,False,True,False,13
 NAKA,Nakamoto Inc.,,0001946573,False,True,False,13
-RAPP,"Rapport Therapeutics, Inc.",,0002012593,False,True,False,13
 SATL,Satellogic Inc.,,0001874315,False,True,False,13
 SEPN,"Septerna, Inc.",,0001984086,False,True,False,13
-SHOP,Shopify Inc.,,0001594805,False,True,False,13
 SKYQ,Sky Quarry Inc.,,0001812447,False,True,False,13
 SNYR,Synergy CHC Corp.,,0001562733,False,True,False,13
 SVCO,"Silvaco Group, Inc.",,0001943289,False,True,False,13
@@ -1099,27 +1097,27 @@ UCFI,CN Healthy Food Tech Group Corp.,,0001901203,False,True,False,13
 UPB,"Upstream Bio, Inc.",,0002022626,False,True,False,13
 WAY,Waystar Holding Corp.,,0001990354,False,True,False,13
 ZBIO,"Zenas BioPharma, Inc.",,0001953926,False,True,False,13
-ALAB,"Astera Labs, Inc.",,0001736297,False,True,False,14
 CTNM,"Contineum Therapeutics, Inc.",,0001855175,False,True,False,14
 DTSQ,DT Cloud Star Acquisition Corporation,,0002017950,False,True,False,14
 ELAB,PMGC Holdings Inc.,,0001840563,False,True,False,14
 GAME,"GameSquare Holdings, Inc.",,0001714562,False,True,False,14
 IBAC,IB Acquisition Corp.,,0001998781,False,True,False,14
-LINE,"Lineage, Inc.",,0001868159,False,True,False,14
 LRHC,La Rosa Holdings Corp.,,0001879403,False,True,False,14
 MAMO,Massimo Group,,0001952853,False,True,False,14
-NAMS,NewAmsterdam Pharma Company N.V.,,0001936258,False,True,False,14
 NEXM,NexMetals Mining Corp.,,0000795800,False,True,False,14
+RAPP,"Rapport Therapeutics, Inc.",,0002012593,False,True,False,14
 RENX,RenX Enterprises Corp.,,0001959023,False,True,False,14
 RR,Richtech Robotics Inc.,,0001963685,False,True,False,14
 SBET,"Sharplink, Inc.",,0001981535,False,True,False,14
 SHIM,Shimmick Corporation,,0001887944,False,True,False,14
+SHOP,Shopify Inc.,,0001594805,False,True,False,14
 SMXT,Solarmax Technology Inc.,,0001519472,False,True,False,14
 TELO,"Telomir Pharmaceuticals, Inc.",,0001971532,False,True,False,14
 TTAN,"ServiceTitan, Inc.",,0001638826,False,True,False,14
 TTGT,"TechTarget, Inc.",,0002018064,False,True,False,14
 TWFG,"TWFG, Inc.",,0002007596,False,True,False,14
 VS,Versus Systems Inc.,,0001701963,False,True,False,14
+ALAB,"Astera Labs, Inc.",,0001736297,False,True,False,15
 APGE,"Apogee Therapeutics, Inc.",,0001974640,False,True,False,15
 BATRA,"Atlanta Braves Holdings, Inc.",,0001958140,False,True,False,15
 BATRK,"Atlanta Braves Holdings, Inc.",,0001958140,False,True,False,15
@@ -1134,7 +1132,9 @@ GLMD,Galmed Pharmaceuticals Ltd.,,0001595353,False,True,False,15
 INGM,Ingram Micro Holding Corp,,0001897762,False,False,True,15
 INHD,Inno Holdings Inc.,,0001961847,False,True,False,15
 INTS,"Intensity Therapeutics, Inc.",,0001567264,False,True,False,15
+LINE,"Lineage, Inc.",,0001868159,False,True,False,15
 MDBH,"MDB Capital Holdings, LLC",,0001934642,False,True,False,15
+NAMS,NewAmsterdam Pharma Company N.V.,,0001936258,False,True,False,15
 NWTG,"Newton Golf Company, Inc.",,0001934245,False,True,False,15
 SBC,SBC Medical Group Holdings Incorporated,,0001930313,False,True,False,15
 AIRE,reAlpha Tech Corp.,,0001859199,False,True,False,16
