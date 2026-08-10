@@ -1,5 +1,37 @@
 # HANDOFF — Fortune 500 / S&P 500 / NASDAQ financial dataset
 
+## 🔁 CLEAN REBUILD — 2026-08-06
+
+Whole pipeline re-run from scratch (universe included) to verify the codebase
+end to end. Output: **`Fortune500_SP500_NASDAQ_Financials_5Y_v2.xlsx`**,
+3,732 × 974, **30 known full-year revenues at 0.0029%**. The original
+`..._5Y.xlsx` was left untouched and re-verified byte-identical by SHA256.
+
+**Two blocking defects were found and fixed during the rebuild:**
+
+1. **`build_universe.py` sent a User-Agent with no contact email.** SEC returns
+   **403** for generic agents, so the Fortune 500 step and the CIK map both
+   failed — yet the script printed warnings, wrote a universe with **0 Fortune
+   500 flags and 0 CIKs**, and exited 0. Every downstream fetch is keyed on the
+   CIK, so an automated run would have produced an empty dataset while
+   reporting success. The UA now matches the rest of the pipeline, the CIK
+   failure is fatal, and a threshold gate refuses to write a universe that is
+   obviously short (S&P < 450, Nasdaq < 2,500, Fortune < 300, CIKs < 3,000).
+
+2. **`Canada/build_universe_ca.py` had the same bad User-Agent**, and called
+   `.json()` without checking status — so the 403 surfaced as a baffling
+   `JSONDecodeError: line 1 column 1`. It now checks the status, retries with
+   backoff, and fails with a clear message.
+
+**Expected drift vs the previous workbook** (all verified legitimate, none are
+bugs): 7 tickers added and 2 removed as listings changed; a handful of
+`market_cap_est` cells moved because Yahoo retroactively adjusted prices for
+reverse splits (LBGJ 1:200, WETO 1:100, KWM 1:30 — close × shares stays
+self-consistent within each run); and current-month volume differs because
+August is still accumulating.
+
+---
+
 ## ✅ FULL RUN COMPLETE — 2026-08-04
 
 **`Fortune500_SP500_NASDAQ_Financials_5Y.xlsx` (17.5 MB) is built** from the

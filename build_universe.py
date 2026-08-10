@@ -21,7 +21,11 @@ import time
 import pandas as pd
 import requests
 
-UA = {"User-Agent": "StockPipelineDataCollector/1.0"}
+# SEC REQUIRES a descriptive User-Agent carrying a contact email and returns
+# 403 for generic ones. "StockPipelineDataCollector/1.0" was rejected outright,
+# which silently produced a universe with ZERO Fortune 500 flags and ZERO CIKs.
+# Every other script in this pipeline uses this same string -- keep them aligned.
+UA = {"User-Agent": "Research Data Collection (attila.imecs@gmail.com)"}
 TIMEOUT = 45
 
 
@@ -234,8 +238,13 @@ def attach_ciks(df):
     try:
         sec = _get("https://www.sec.gov/files/company_tickers.json").json()
     except Exception as e:  # noqa: BLE001
-        print(f"[universe]   ! SEC ticker map failed: {e} -- CIKs left blank")
-        return df
+        # Do NOT degrade quietly. Every downstream fetch is keyed on the CIK, so
+        # a universe without CIKs yields an empty dataset while every script
+        # still reports success. Better to stop here than to spend an hour
+        # fetching nothing.
+        sys.exit(f"[universe] FATAL: SEC ticker map unavailable ({e}).\n"
+                 f"[universe] CIKs drive every downstream fetch -- refusing to "
+                 f"write a universe without them.")
 
     by_ticker = {
         str(r["ticker"]).upper().strip(): str(r["cik_str"]).zfill(10)
@@ -284,6 +293,23 @@ def main():
     df = df[df["ticker"].str.fullmatch(r"[A-Z\-\.]{1,6}")].sort_values("ticker")
 
     df = attach_ciks(df)
+
+    # Sanity-gate the result. A source can "succeed" and still return nothing
+    # useful -- a 403 on the Fortune 500 step produced 0 flagged companies while
+    # the run reported DONE. These thresholds are far below the real figures
+    # (503 / ~3,300 / ~380) and only catch a source that has actually broken.
+    checks = [
+        ("S&P 500 constituents", int(df.in_sp500.sum()), 450),
+        ("Nasdaq listings", int(df.in_nasdaq.sum()), 2500),
+        ("Fortune 500 flags", int(df.in_fortune500.sum()), 300),
+        ("CIKs attached", int((df["cik"].astype(str).str.strip() != "").sum()), 3000),
+    ]
+    broken = [f"{name}: {got} (expected >= {floor})"
+              for name, got, floor in checks if got < floor]
+    if broken:
+        sys.exit("[universe] FATAL: a source returned too little to be trusted:\n"
+                 + "\n".join(f"[universe]   {b}" for b in broken)
+                 + "\n[universe] universe.csv NOT written.")
 
     df.to_csv("universe.csv", index=False)
     print(f"\n[universe] DONE -- {len(df)} unique tickers -> universe.csv")
