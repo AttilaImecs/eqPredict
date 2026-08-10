@@ -514,7 +514,7 @@ figure from a derived one.
 | "~4,000–5,000 tickers, 45–90 min" | 3,727 tickers; ~15 min for prices, ~8 min for fundamentals. |
 | "`ebit` blank for banks/insurers/REITs is correct" | ✅ Confirmed — 68% populated overall, and the blanks are concentrated exactly where expected. |
 | "~60 monthly rows per ticker" | ✅ Confirmed — median exactly 60, 0% null closes. |
-| "build_excel.py never verified against real data" | ✅ **Now verified** — full chain run on 25 tickers, output opens and reads back cleanly. See `SAMPLE_25tickers.xlsx`. |
+| "build_excel.py never verified against real data" | ✅ **Now verified** — full chain run on 25 tickers, output opens and reads back cleanly. (`SAMPLE_25tickers.xlsx` removed 2026-08-10; see section 9.) |
 
 ---
 
@@ -557,10 +557,13 @@ figure from a derived one.
 | `backfill_quarters.py` | ✅ **new** — fills the most recent quarter where SEC's API lags EDGAR |
 | `build_excel.py` | ✅ **verified against real data, then reworked** to emit the wide one-row-per-ticker `Data` sheet (section 4b) |
 | `universe.csv` | current build artifact (3,727 rows) |
-| `smoke_quarterly.csv` | 25-ticker smoke output, 488 rows — inspect before committing to the full run |
-| `SAMPLE_25tickers.xlsx` | end-to-end proof: the real workbook, built from 25 tickers |
 | `fortune500_unmatched.csv` | Fortune 500 names with no US ticker |
 | `fetch_prices.py` | ✅ **new** — batched Yahoo prices + snapshot; replaces fetch_financials for prices |
 | `pipeline_architecture.svg` | run order and data flow, including step 2's internals |
-| `Fortune500_SP500_NASDAQ_Financials_5Y.xlsx` | ✅ **the deliverable** — 3,727 × 974 |
+| `Fortune500_SP500_NASDAQ_Financials_5Y_v2.xlsx` | ✅ **the deliverable** — 3,732 × 974, from the 2026-08-06 clean rebuild |
+
+**Removed 2026-08-10** (recoverable from git history, all superseded): the pre-rebuild
+`Fortune500_SP500_NASDAQ_Financials_5Y.xlsx`, `smoke_quarterly.csv`,
+`SAMPLE_25tickers.xlsx`, `SAMPLE_100tickers.xlsx`. Note `build_excel.py`'s `OUT`
+still writes the un-suffixed name, so the next run recreates it rather than a `v3`.
 | `HANDOFF.md` | this file |
