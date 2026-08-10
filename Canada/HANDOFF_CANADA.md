@@ -1,5 +1,24 @@
 # HANDOFF — S&P/TSX Composite financial dataset
 
+## 🔁 CLEAN REBUILD — 2026-08-06
+
+Whole pipeline re-run from scratch, universe included. Output:
+**`TSX_Composite_Financials_5Y_v2.xlsx`**, 220 × 333, **15 known figures at
+0.695%**, zero impossible values, National Bank present. The original
+`TSX_Composite_Financials_5Y.xlsx` was left untouched and re-verified
+byte-identical by SHA256.
+
+**One blocking defect fixed:** `build_universe_ca.py` sent the User-Agent
+`StockPipelineDataCollector/1.0`. SEC requires a contact email and returns
+**403** for generic agents, so the CIK map fetch failed — and because `.json()`
+was called without checking the status, it surfaced as
+`JSONDecodeError: line 1 column 1`, which points nowhere near the real cause.
+The UA now matches the rest of the pipeline, and `sec_ticker_map()` checks the
+status, retries with backoff, and exits with a clear message rather than
+writing a universe with no cross-listing data.
+
+---
+
 ## ✅ FULL RUN COMPLETE — all 220 constituents
 
 `TSX_Composite_Financials_5Y.xlsx` — 220 rows × 333 columns. Same wide layout as

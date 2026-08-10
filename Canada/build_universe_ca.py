@@ -22,12 +22,15 @@ WHY THE CIK MATTERS -- AND WHY IT IS MATCHED BY NAME
 import io
 import re
 import sys
+import time
 import difflib
 
 import pandas as pd
 import requests
 
-UA = {"User-Agent": "StockPipelineDataCollector/1.0"}
+# SEC rejects generic User-Agents with 403. It requires a descriptive string
+# carrying a contact email. This must stay aligned with the other scripts.
+UA = {"User-Agent": "Research Data Collection (attila.imecs@gmail.com)"}
 WIKI = "https://en.wikipedia.org/wiki/S%26P/TSX_Composite_Index"
 SEC_TICKERS = "https://www.sec.gov/files/company_tickers.json"
 OUT = "universe_ca.csv"
@@ -64,8 +67,33 @@ def fetch_constituents():
     sys.exit("Could not find the constituent table on the Wikipedia page")
 
 
+def sec_ticker_map(retries=5):
+    """
+    Fetch SEC's ticker->CIK map, with status checking and backoff.
+
+    Calling .json() straight off the response hides the real problem: when SEC
+    rate-limits it returns an HTML error page, and json() then raises a
+    JSONDecodeError pointing at 'line 1 column 1' with no mention of the 403.
+    After a few thousand companyfacts requests a temporary throttle is normal,
+    so retry rather than fail on the first attempt.
+    """
+    last = None
+    for attempt in range(retries):
+        try:
+            r = requests.get(SEC_TICKERS, headers=UA, timeout=45)
+            if r.status_code == 200:
+                return r.json()
+            last = f"HTTP {r.status_code}"
+        except Exception as e:                        # noqa: BLE001
+            last = str(e)[:80]
+        time.sleep(2 ** attempt)
+    sys.exit(f"[universe] FATAL: SEC ticker map unavailable after {retries} "
+             f"attempts ({last}).\n[universe] Cross-listed CIKs cannot be "
+             f"resolved -- refusing to write a universe without them.")
+
+
 def attach_ciks(uni):
-    j = requests.get(SEC_TICKERS, headers=UA, timeout=45).json()
+    j = sec_ticker_map()
     recs = [(v["ticker"].upper(), v["cik_str"], v["title"]) for v in j.values()]
     by_ticker, by_name = {}, {}
     for tk, cik, title in recs:
