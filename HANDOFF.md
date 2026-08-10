@@ -558,6 +558,8 @@ figure from a derived one.
 | `build_excel.py` | ✅ **verified against real data, then reworked** to emit the wide one-row-per-ticker `Data` sheet (section 4b) |
 | `universe.csv` | current build artifact (3,727 rows) |
 | `fortune500_unmatched.csv` | Fortune 500 names with no US ticker |
+| `score_companies.py` | ✅ **new** — 0-100 rules-based company score, 5 pillars, 3-year window (section 10) |
+| `company_scores.csv` | score output, one row per rated ticker with every input that fed it |
 | `fetch_prices.py` | ✅ **new** — batched Yahoo prices + snapshot; replaces fetch_financials for prices |
 | `pipeline_architecture.svg` | run order and data flow, including step 2's internals |
 | `Fortune500_SP500_NASDAQ_Financials_5Y_v2.xlsx` | ✅ **the deliverable** — 3,732 × 974, from the 2026-08-06 clean rebuild |
@@ -567,3 +569,60 @@ figure from a derived one.
 `SAMPLE_25tickers.xlsx`, `SAMPLE_100tickers.xlsx`. Note `build_excel.py`'s `OUT`
 still writes the un-suffixed name, so the next run recreates it rather than a `v3`.
 | `HANDOFF.md` | this file |
+
+---
+
+## 10. `score_companies.py` — the 0-100 company score
+
+`python3 score_companies.py --top 25 --min-confidence 0.7`
+
+Pure stdlib, no pandas — the env that ran the fetchers is gone and this needs
+to run anywhere. Reads the four checkpoint CSVs, writes `company_scores.csv`
+with the score, the five pillar sub-scores, every flag, and every raw metric
+that fed a rule, so any score can be taken apart.
+
+Five pillars of 20: **growth, profitability, quality, valuation,
+momentum/risk**. Thresholds are calibrated against this universe's actual
+percentiles, not invented — each band carries the percentile it sits at in a
+comment. A pillar with no data is dropped and the total renormalised, with
+`confidence` reporting how much of the rubric ran. Growth is TTM-vs-TTM three
+years apart (16 quarters); 2,578 of 2,784 rated names get that full window,
+and `growth_basis` marks the 100 that fall back to two years.
+
+**Two structural blind spots, both unfixable with the data in this repo:** no
+balance sheet (so leverage, coverage and ROE are invisible — a company can
+score 85 and be one covenant from trouble) and no cash flow (so accrual
+quality cannot be tested). Stated at the top of the script too.
+
+### Three bugs found while validating it — all in the share-count trend
+
+The dilution/buyback signal comes from `net_income / eps_diluted`, since we
+hold only a single current share snapshot. Each of these produced confidently
+wrong output before it was caught:
+
+1. **Stock splits.** As-filed EPS is not restated backwards, so Nvidia's 10:1
+   shows as a ×9.93 jump and read as **+883% dilution**; Walmart, Alphabet and
+   Tesla the same. Splits are now chain-linked out by recognising ratios within
+   6% of a round integer — which deliberately leaves UMB Financial's ×1.6
+   Heartland acquisition intact as the real dilution it is.
+2. **Derived Q4 rows.** `eps_diluted` is in `ADDITIVE`, but EPS is only
+   additive if the share count held still — the exact thing being measured.
+   Nvidia's FY2024 Q4 implied **−49bn shares**. Derived rows are now excluded.
+3. **A fixed EPS floor.** `abs(eps) < 0.02` is meaningless for a filer earning
+   ~$100/share: a near-breakeven quarter made **Booking read +1928%** and
+   Allstate **+731%**. The floor is now relative to the company's own median
+   EPS, and Booking correctly shows −14.3% — it has been retiring stock.
+
+### Known bias: the score tilts towards Financials
+
+Median score by sector runs **72.8 (Financials) to 60.8 (Consumer Staples)**,
+and Financials are **3.0× over-represented in the top 200** while Energy and
+Materials are absent. It is mechanical: margin bands are absolute and median
+net margin is 21.2% in Financials vs 6.6% in Consumer Staples, and banks
+structurally trade on low P/Es.
+
+`sector_rank_pct` (percentile within sector) is the column to compare on — but
+`sector` is only populated for the ~500 S&P names from the Wikipedia scrape.
+**The real fix is an SIC code per filer**, which SEC assigns to everyone and
+`build_universe.py` could pull in one pass. Until then, read the absolute score
+as "rank this whole list" and the sector rank as "rank this against peers".
