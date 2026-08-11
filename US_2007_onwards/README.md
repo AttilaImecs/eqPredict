@@ -71,3 +71,67 @@ without it produces a longer backtest that is *more* biased, not less.
 | `fetch_prices.py` | `YEARS` | 5 |
 
 Raising these is necessary and nowhere near sufficient.
+
+---
+
+## Ticker recovery — `recover_tickers.py` (built, measured, NOT sufficient)
+
+The blocker found by probing: fundamentals for a ceased filer are complete and
+keyed on CIK, but prices are keyed on ticker and **the link is cut**:
+
+| source | ticker for a ceased filer |
+|---|---|
+| submissions API `tickers` | blank, 97% of 120 sampled |
+| `dei:TradingSymbol` in companyfacts | absent, 40 of 40 |
+| DERA `sub.txt` / `num.txt` / `tag.txt` | **no ticker field exists** |
+
+So the parser digs it out of the filings themselves. Four strategies, tried in
+order: the filing's own XBRL instance (`dei:TradingSymbol`), the Section 12(b)
+cover-page table, an exchange parenthetical, and a quoted symbol.
+
+### Measured, on companies whose ticker we already know
+
+| regime | symbol found | of those, matches today's ticker |
+|---|---|---|
+| modern filings (any date) | 98% | **100%** |
+| **pre-2019 only** | **54%** | **76%** |
+
+The modern number is the easy case and not the one that matters: 95% of those
+successes come from `dei:TradingSymbol`, which cover-page tagging only made
+mandatory in **2019**. Ceased filers stopped before that, so the pre-2019 row
+is the real forecast — **roughly half get a symbol at all**.
+
+### Two findings that change how the output must be read
+
+**Most "mismatches" are correct.** Of 9 disagreements, nearly all are renames
+where the parser returned the ticker that was RIGHT AT THE TIME: Elevance was
+`ANTM`, Harrow was `IMMY`, aTyr was `LIFE`, Usio was `PYDS`. For a backtest the
+historical ticker is what we WANT — the price series as it actually traded. The
+"truth" being compared against (today's ticker) is the wrong benchmark, so 76%
+understates accuracy. Only Fidelity National→`STC` and Service Properties→`WYND`
+look like genuine regex failures, both from `exchange-paren`, which scored 0/2
+and should probably be dropped.
+
+**Two bugs found and fixed by validation, not by reading code:** SPACs tag
+unit, share and warrant all as `TradingSymbol`, and the parser took the unit
+(`EVOXU` for `EVOX`); and a bare capital letter passed as a ticker (`C` for
+Defi Technologies). Both invisible without a labelled test set.
+
+### Where this leaves the backtest
+
+At ~54% recovery, roughly **half the delisted companies still cannot be
+priced** — and there is no reason to think the recoverable half is a random
+sample of the other. A company that wound down quietly leaves thinner filings
+than one acquired at a premium, so the recovered subset likely skews toward
+better outcomes. That is survivorship bias returning through the back door, in
+a form that is harder to see.
+
+Options, in increasing order of honesty:
+
+1. Improve the pre-2019 strategies. `exchange-paren` is actively harmful (0/2);
+   old filings are often plain text rather than HTML and need different
+   handling. Might push recovery to 70-80%, not to 100%.
+2. Use a paid point-in-time database (CRSP, WRDS). This is precisely the
+   problem they exist to solve.
+3. Restrict the backtest to a period and universe where coverage is near
+   complete, and state the limitation rather than paper over it.
