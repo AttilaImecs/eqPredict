@@ -1000,3 +1000,35 @@ dedicated `str` dtype**. The check silently stopped matching, so every text
 column in both workbooks quietly fell back to the default width. No error, no
 symptom beyond a slightly worse-looking sheet — the kind of thing only a test
 finds. Now uses `is_object_dtype or is_string_dtype`.
+
+### Rescore after the fixes — and what the retry recovered
+
+The retry fix immediately proved itself. 271 tickers were still missing;
+running the fetcher with retry enabled recovered the ones that had been
+transiently failed and permanently checkpointed (ADAG, ABLV, AFRI, AIFU and
+others — every one of them fetches cleanly on request).
+
+| | before | after |
+|---|---|---|
+| Tickers with data | 3,446 | **3,450** |
+| Companies scored | 3,117 | **3,121** (84% of universe) |
+
+Median score 48.9, median confidence 0.72; 2,816 quarterly-basis and 305
+annual-basis. Spot-checks behave: Nvidia and Alphabet score 20/20 on health
+(net cash), Verizon 5.3 (heavily indebted), Booking is flagged
+`negative_equity` — which is correct, its buybacks have taken equity negative.
+
+### THE NEXT REAL GAP: ~133 companies file under IFRS, not US-GAAP
+
+Sampling the 267 that still return empty: **10 of 20 have full financials
+under `facts["ifrs-full"]`**, and `build_rows()` only ever reads
+`facts["us-gaap"]`. Thomson Reuters (398 IFRS concepts), ProQR (203), Lanvin
+(156), UROY (124) are not thin filers — they are complete, in the wrong
+namespace, and invisible.
+
+Of the rest: 4 of 20 have no facts at all, 5 have a us-gaap namespace with
+1-35 concepts (genuinely too thin), and 1 returns 404.
+
+Closing this needs an IFRS concept map (`Revenue`, `ProfitLoss`, `Assets`,
+`Equity`, `CashAndCashEquivalents`, …) alongside the existing US-GAAP one. It
+would take coverage from 84% to roughly 87-88%.
