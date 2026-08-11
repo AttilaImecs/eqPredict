@@ -21,3 +21,30 @@ Canada/_done_ca.txt
 
 # Fetcher coverage snapshot (regeneratedeach run)
 *.csv.tickers
+
+# ---------------------------------------------------------------------------
+# GENERATED ARTIFACTS -- every one of these is rebuilt by the scripts.
+#
+# They were tracked until 2026-08-11. Five rebuilds of the 27 MB workbook in a
+# single session took .git from 76 MB to 223 MB, because git stores a whole new
+# copy of a binary on every change. History was rewritten to purge them; keep
+# them out.
+#
+# Rebuild order:  fetch_sec_fundamentals.py -> fetch_prices.py ->
+#                 fetch_sic.py -> score_companies.py -> build_excel.py
+# ---------------------------------------------------------------------------
+*.xlsx
+!Picks/*.xlsx
+data_quarterly.csv
+data_quarterly_yf.csv
+data_monthly.csv
+data_snapshot.csv
+data_shares.csv
+data_sic.csv
+company_scores.csv
+scores_asof_*.csv
+score_validation.csv
+sec_short_history.csv
+smoke_quarterly.csv
+Canada/data_*.csv
+Canada/*_scores.csv
