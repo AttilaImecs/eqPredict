@@ -205,3 +205,63 @@ and those are more likely to be the quiet failures than the clean exits.
 A 2020-2026 point-in-time backtest is ~6 years and 24 quarters — against the 8
 distinct quarters the current analysis rests on, a threefold improvement with
 survivorship largely, though not entirely, addressed.
+
+---
+
+## STOP — the price probe kills the free-data path
+
+Prices were probed first precisely so this would surface before the universe
+and fundamentals were built. It did.
+
+### Yahoo does not serve delisted price history
+
+Eight well-known delistings, all large and recently traded:
+
+| ticker | event | `download()` | `Ticker.history(max)` |
+|---|---|---|---|
+| XLNX | Xilinx, acquired by AMD 2022 | EMPTY | EMPTY |
+| ATVI | Activision, acquired by Microsoft 2023 | EMPTY | EMPTY |
+| TWTR | Twitter, taken private 2022 | EMPTY | EMPTY |
+| VMW | VMware, acquired 2023 | EMPTY | EMPTY |
+| SGEN | Seagen, acquired by Pfizer 2023 | EMPTY | EMPTY |
+| FRC | First Republic, failed 2023 | EMPTY | EMPTY |
+| SIVB | SVB Financial, failed 2023 | EMPTY | EMPTY |
+| BBBY | Bed Bath & Beyond, liquidated 2023 | 60 rows | 292 rows |
+
+Survivors are fine — AAPL and MSFT return full history, and `yfinance`'s
+cookie/crumb handshake also fixes the HTTP 429 that raw requests hit. The
+problem is specific and total: **when a listing ends, the history goes with it.**
+
+### The one "success" is worse than the failures
+
+BBBY returned 292 monthly rows spanning 2002-05 to **2026-08**. Bed Bath &
+Beyond was liquidated in 2023. The series continues because Overstock bought
+the brand and took the ticker — so those rows are a **different company**.
+
+A recovered ticker can therefore return prices belonging to whoever inherited
+the symbol. That is worse than an empty series, because it looks like data.
+Any ticker-based price lookup for a delisted company needs a listing-date guard
+before it can be trusted.
+
+### What this means
+
+`recover_tickers.py` is not wasted — it still identifies companies — but
+recovering a ticker at 60-83% does not help when the price series behind it no
+longer exists at any recovery rate. **The binding constraint was never the
+CIK-to-ticker link; it is that free price sources do not retain delisted
+history.** stooq is also unusable (JavaScript proof-of-work bot check).
+
+So a survivorship-corrected backtest is not reachable from SEC + Yahoo alone,
+at 2020 or any other start date. The remaining routes:
+
+1. **A paid source that retains delisted history** — CRSP, Norgate, EODHD,
+   Polygon. This is the specific thing they sell, and it is the only route that
+   actually solves it.
+2. **Survivors-only, bias stated plainly.** Still ~24 quarters, still a
+   threefold improvement on the current 8 — but it cannot test the
+   loser-avoidance claim, since the losers are what is missing.
+3. **Treat delisted names as a total loss (-100%).** Wrong often enough to be
+   dangerous: acquisitions frequently close at a PREMIUM, and roughly half the
+   disappearances here are acquisitions rather than failures.
+
+Option 2 is honest and cheap. Option 1 is correct. Option 3 should not be used.
