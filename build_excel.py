@@ -5,7 +5,11 @@ STEP 3 of 3 -- Assemble the checkpoint CSVs into a formatted Excel workbook.
 Reads:  universe.csv, data_quarterly.csv, data_monthly.csv, data_snapshot.csv
 Writes: Fortune500_SP500_NASDAQ_Financials_5Y.xlsx
 
-Sheets: README, Snapshot, Data (one row per ticker), Universe, Coverage.
+Sheets: README, Snapshot, Data (one row per ticker), Scores, Universe, Coverage.
+
+The Data sheet carries EVERYTHING per ticker on one row: annual and quarterly
+income statement, cash flow, balance sheet, and 60 months of prices, market cap
+and P/E. Scores adds the 0-100 rating and the balance-sheet ratios beside it.
 """
 
 import os
@@ -17,6 +21,8 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 OUT = "Fortune500_SP500_NASDAQ_Financials_5Y.xlsx"
+SCORES_FILE = "company_scores.csv"
+SCORES_OUT = "Company_Scores.xlsx"
 MAX_ROWS = 1_000_000  # safety margin under Excel's 1,048,576
 
 HEADER_FILL = PatternFill("solid", fgColor="1F3864")
@@ -34,6 +40,13 @@ NUM = "#,##0.00"
 FORMATS = {
     "revenue": MONEY, "gross_profit": MONEY, "ebit": MONEY, "ebitda": MONEY,
     "net_income": MONEY, "market_cap": MONEY, "market_cap_est": MONEY,
+    "ocf": MONEY, "capex": MONEY, "fcf": MONEY, "interest_expense": MONEY,
+    "cash": MONEY, "short_term_investments": MONEY, "total_debt": MONEY,
+    "net_debt": MONEY, "equity": MONEY, "assets": MONEY, "liabilities": MONEY,
+    "current_assets": MONEY, "current_liabilities": MONEY,
+    "fcf_margin_pct": PCT, "roe": PCT,
+    "net_debt_to_ebitda": NUM, "interest_coverage": NUM,
+    "current_ratio": NUM, "debt_to_equity": NUM, "score": NUM,
     "gross_margin_pct": PCT, "ebit_margin_pct": PCT, "ebitda_margin_pct": PCT,
     "net_margin_pct": PCT, "profit_margin_pct": PCT, "operating_margin_pct": PCT,
     "dividend_yield": PCT, "payout_ratio": PCT,
@@ -52,7 +65,14 @@ for _base, _fmt in list(FORMATS.items()):
 
 Q_MEASURES = [
     "revenue", "gross_profit", "ebit", "ebitda", "net_income", "eps_diluted",
+    "ocf", "capex", "fcf",
+    # Balance-sheet items are POINT-IN-TIME. They appear as quarterly columns
+    # but are deliberately kept OUT of ANNUAL_ADDITIVE below: summing four cash
+    # balances to make a "year" is meaningless, where summing four quarters of
+    # revenue is exactly right.
+    "cash", "total_debt", "net_debt", "equity", "assets",
     "gross_margin_pct", "ebit_margin_pct", "ebitda_margin_pct", "net_margin_pct",
+    "fcf_margin_pct",
     "q4_derived",
 ]
 # open/high/low are intentionally excluded -- monthly OHLC adds three columns
@@ -115,7 +135,12 @@ def style(ws, df, freeze="A2"):
         width = max(len(str(col)) + 3, 11)
         if df[col].dtype == object:
             sample = df[col].astype(str).head(300)
-            width = min(max(width, int(sample.str.len().max() or 10) + 2), 42)
+            longest = sample.str.len().max()
+            # `or 10` does NOT guard this: max() returns NaN for an all-empty
+            # column and NaN is truthy, so the fallback never fired and
+            # int(NaN) raised. pd.isna is the only correct test here.
+            longest = 10 if pd.isna(longest) else int(longest)
+            width = min(max(width, longest + 2), 42)
         ws.column_dimensions[letter].width = width
 
         if light:
@@ -126,7 +151,10 @@ def style(ws, df, freeze="A2"):
                 cell.number_format = fmt
 
 
-ANNUAL_ADDITIVE = ["revenue", "gross_profit", "ebit", "ebitda", "net_income", "eps_diluted"]
+# Flows only. See the note in Q_MEASURES -- adding a balance-sheet item here
+# would silently produce a four-times-overstated "annual" cash position.
+ANNUAL_ADDITIVE = ["revenue", "gross_profit", "ebit", "ebitda", "net_income",
+                   "eps_diluted", "ocf", "capex", "fcf"]
 ANNUAL_MARGINS = [
     ("gross_margin_pct", "gross_profit"),
     ("ebit_margin_pct", "ebit"),
@@ -473,6 +501,41 @@ def readme_frame(counts):
     return pd.DataFrame(rows, columns=["Item", "Detail"])
 
 
+def write_scores_workbook(path=SCORES_OUT):
+    """Standalone scores workbook, separate from the big data file.
+
+    The Data sheet in OUT is ~900 columns wide because it carries 60 months of
+    prices per ticker. That is the right shape for analysis and the wrong shape
+    for reading a ranking, so the scores also get their own file: one row per
+    company, score and pillars first, then the balance-sheet ratios, then the
+    raw inputs that produced them.
+    """
+    if not os.path.exists(SCORES_FILE):
+        print(f"[xl] {SCORES_FILE} not found -- run score_companies.py first")
+        return
+    sc = pd.read_csv(SCORES_FILE)
+    lead = [c for c in [
+        "ticker", "company", "sector", "score", "band", "confidence",
+        "period_basis", "growth_basis", "periods", "flags",
+        "growth", "profitability", "quality", "health", "valuation", "momentum",
+        "market_cap", "pe", "ps", "p_fcf",
+        "net_debt_to_ebitda", "interest_coverage", "current_ratio",
+        "debt_to_equity", "roe", "total_debt", "cash", "net_debt", "equity",
+        "assets", "revenue_ttm", "net_income_ttm", "fcf_ttm", "ebitda_ttm",
+        "rev_cagr", "net_margin", "ret_12m",
+    ] if c in sc.columns]
+    ordered = sc[lead + [c for c in sc.columns if c not in lead]]
+
+    with pd.ExcelWriter(path, engine="openpyxl") as xw:
+        for name, df in (("Scores", ordered),
+                         ("Ranked by sector", ordered.sort_values(
+                             ["sector", "score"], ascending=[True, False]))):
+            out = to_millions(df)
+            out.to_excel(xw, sheet_name=name, index=False)
+            style(xw.sheets[name], out, freeze="D2")
+    print(f"[xl] {path}  {len(ordered)} companies x {len(ordered.columns)} columns")
+
+
 def main():
     missing = [f for f in ("data_quarterly.csv", "data_monthly.csv", "data_snapshot.csv")
                if not os.path.exists(f)]
@@ -542,6 +605,25 @@ def main():
             ("Snapshot", s),
         ]
         sheets.append(("Data", wide))
+
+        # Scores sheet -- optional, because company_scores.csv is produced by a
+        # later step than this one and a fresh checkout will not have it yet.
+        # It leads with the score and the balance-sheet ratios, so the columns
+        # that answer "is this a good business and can it pay its debts" sit
+        # together without scrolling through 900 period columns.
+        if os.path.exists(SCORES_FILE):
+            sc = pd.read_csv(SCORES_FILE)
+            lead = [c for c in [
+                "ticker", "company", "sector", "score", "band", "confidence",
+                "growth", "profitability", "quality", "health", "valuation",
+                "momentum", "flags", "market_cap", "pe", "ps", "p_fcf",
+                "net_debt_to_ebitda", "interest_coverage", "current_ratio",
+                "debt_to_equity", "roe", "total_debt", "cash", "equity",
+            ] if c in sc.columns]
+            sc = sc[lead + [c for c in sc.columns if c not in lead]]
+            sheets.append(("Scores", sc))
+            counts["Scored companies"] = len(sc)
+
         if not uni.empty:
             sheets.append(("Universe", uni))
         sheets.append(("Coverage", cov))
@@ -565,6 +647,8 @@ def main():
     print(f"\n[excel] DONE -> {OUT}  ({size:.1f} MB)")
     for k, v in counts.items():
         print(f"[excel]   {k}: {v}")
+
+    write_scores_workbook()
 
 
 if __name__ == "__main__":

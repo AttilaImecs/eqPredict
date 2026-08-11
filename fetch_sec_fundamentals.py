@@ -118,11 +118,17 @@ CONCEPTS = {
         "NetCashProvidedByUsedInOperatingActivities",
         "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
     ],
+    # Durational, unlike the balance-sheet items below -- interest expense is
+    # a flow over the quarter, so it goes through the normal additive path.
+    "interest_expense": [
+        "InterestExpense",
+        "InterestExpenseDebt",
+        "InterestIncomeExpenseNet",
+    ],
     # Capital expenditure, tagged as a POSITIVE cash outflow. Filers split it
     # across several tags and no single one is universal, so this uses
-    # merge="max" (see CASHFLOW_YTD below): the candidates overlap as
-    # total-vs-component rather than as alternatives, and a component is by
-    # definition the smaller number.
+    # merge="max": the candidates overlap as total-vs-component rather than as
+    # alternatives, and a component is by definition the smaller number.
     "capex": [
         "PaymentsToAcquirePropertyPlantAndEquipment",
         "PaymentsToAcquireProductiveAssets",
@@ -135,7 +141,7 @@ CONCEPTS = {
 # Fields where Q4 = FY - (Q1+Q2+Q3) is a valid derivation. All of these are
 # flow measures that sum across the year. Balance-sheet items would not be.
 ADDITIVE = ("revenue", "gross_profit", "ebit", "net_income", "eps_diluted",
-            "dep_amort", "ocf", "capex")
+            "dep_amort", "ocf", "capex", "interest_expense")
 
 # Cash-flow-statement items are tagged YEAR-TO-DATE, not per quarter: a bare
 # ~90-day filter finds only Q1 and silently drops three quarters in four.
@@ -143,6 +149,61 @@ ADDITIVE = ("revenue", "gross_profit", "ebit", "net_income", "eps_diluted",
 # rest. This is the same treatment dep_amort has always needed -- getting it
 # wrong on ocf/capex would put Q1's cash flow against a full year of revenue.
 CASHFLOW_YTD = ("dep_amort", "ocf", "capex")
+
+# --------------------------------------------------------------------------
+# BALANCE SHEET -- INSTANT facts, NOT durational.
+#
+# These carry an `end` and no `start`: they are a position at a moment, not a
+# flow over a period. _collect() skips them for exactly that reason, so they
+# need their own extraction path (extract_instant) and must NEVER be routed
+# through derive_q4() or ytd_to_quarterly(). Q4 = FY - (Q1+Q2+Q3) is nonsense
+# for a balance: you do not add up four cash balances to get a year's cash.
+# --------------------------------------------------------------------------
+BALANCE_CONCEPTS = {
+    "cash": [
+        "CashAndCashEquivalentsAtCarryingValue",
+        "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+        "CashAndCashEquivalentsAtCarryingValueIncludingDiscontinuedOperations",
+    ],
+    "short_term_investments": [
+        "ShortTermInvestments",
+        "MarketableSecuritiesCurrent",
+        "AvailableForSaleSecuritiesDebtSecuritiesCurrent",
+    ],
+    # Long-term debt EXCLUDING current maturities. Kept separate from debt_st
+    # so total_debt can be composed without double counting -- see build_rows.
+    "debt_lt": [
+        "LongTermDebtNoncurrent",
+        "LongTermDebtAndCapitalLeaseObligationsNoncurrent",
+        # Coca-Cola tags the noncurrent leg under this bare name -- without it
+        # KO fell through to its current portion alone and reported $4.5bn of
+        # debt against an actual $43.6bn.
+        "LongTermDebtAndCapitalLeaseObligations",
+    ],
+    "debt_st": [
+        "LongTermDebtCurrent",
+        "LongTermDebtAndCapitalLeaseObligationsCurrent",
+        "ShortTermBorrowings",
+        "DebtCurrent",
+        "CommercialPaper",
+    ],
+    # All-in tags. Whether these INCLUDE current maturities varies by filer,
+    # which is why total_debt takes the max of this and the composed
+    # components rather than preferring either -- see build_rows.
+    "debt_total_tag": [
+        "DebtLongtermAndShorttermCombinedAmount",
+        "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities",
+        "LongTermDebt",
+    ],
+    "equity": [
+        "StockholdersEquity",
+        "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest",
+    ],
+    "assets": ["Assets"],
+    "liabilities": ["Liabilities"],
+    "current_assets": ["AssetsCurrent"],
+    "current_liabilities": ["LiabilitiesCurrent"],
+}
 
 # Holding-company reorganizations and large mergers create a NEW CIK, and SEC's
 # company_tickers.json maps the ticker to that successor. The successor holds
@@ -406,6 +467,53 @@ def extract_series(usgaap: dict, candidates, cutoff: date,
             place(annual, k, v)
 
     return quarterly, annual, unit, derived
+
+
+def extract_instant(usgaap: dict, candidates, cutoff: date):
+    """Pull a BALANCE-SHEET concept: facts with an `end` and no `start`.
+
+    Instant facts state a position at a moment. They are keyed by end date
+    alone, and they are deliberately NOT passed through derive_q4() or
+    ytd_to_quarterly() -- adding four cash balances does not give you a year's
+    cash, and differencing two equity balances does not give you a quarter's
+    equity.
+
+    Candidates are tried in order and the FIRST that carries a period wins,
+    rather than merged: unlike revenue, where the tags are alternative names
+    for one total, these lists are ordered by preference (a restricted-cash
+    variant is a different definition, not a better one).
+
+    Restatements are handled the same way as elsewhere -- latest `filed` wins.
+    """
+    out, unit = {}, None
+    for name in candidates:
+        obj = usgaap.get(name)
+        if not obj:
+            continue
+        u, facts = pick_unit(obj)
+        if not facts:
+            continue
+        picked = {}
+        for f in facts:
+            end, val = f.get("end"), f.get("val")
+            # `start` present means this is a duration, not an instant --
+            # some concepts appear in both flavours and the duration one is
+            # not a balance.
+            if not end or val is None or f.get("start"):
+                continue
+            if f.get("form") not in FORMS:
+                continue
+            if date.fromisoformat(end) < cutoff - timedelta(days=400):
+                continue
+            filed = f.get("filed", "")
+            prev = picked.get(end)
+            if prev is None or filed > prev[1]:
+                picked[end] = (float(val), filed)
+        for k, v in picked.items():
+            out.setdefault(k, v[0])
+        if unit is None and picked:
+            unit = u
+    return out, unit
 
 
 def derive_q4(quarterly: dict, annual: dict, annual_alts: dict = None):
@@ -699,6 +807,12 @@ def build_rows(ticker, meta, facts, cutoff: date):
         annual_series[field] = rekey_by_end(a)
         units[field] = unit
 
+    # Balance sheet: instant facts, keyed by end date only.
+    balance = {}
+    for field, candidates in BALANCE_CONCEPTS.items():
+        vals, _u = extract_instant(usgaap, candidates, cutoff)
+        balance[field] = vals
+
     fiscal_years = sorted(annual_periods)
 
     # union of every period end we saw across all fields
@@ -756,6 +870,37 @@ def build_rows(ticker, meta, facts, cutoff: date):
                 return round(num / rev * 100, 3)
             return None
 
+        def bal(field):
+            return balance.get(field, {}).get(end)
+
+        cash, sti = bal("cash"), bal("short_term_investments")
+        equity, assets = bal("equity"), bal("assets")
+        cur_a, cur_l = bal("current_assets"), bal("current_liabilities")
+
+        # TOTAL DEBT -- composed, not taken from one tag.
+        #
+        # Filers split debt between a noncurrent and a current portion, or
+        # publish one combined figure, and the tags overlap: `LongTermDebt` is
+        # the whole obligation INCLUDING current maturities for many filers, so
+        # adding debt_st to it double counts. Prefer the components when the
+        # noncurrent leg exists; fall back to the combined tag alone.
+        d_lt, d_st, d_tag = bal("debt_lt"), bal("debt_st"), bal("debt_total_tag")
+        composed = (d_lt + (d_st or 0.0)) if d_lt is not None else None
+        cands = [v for v in (composed, d_tag, d_st) if v is not None]
+        # MAX, not a priority order. Whether `LongTermDebt` includes current
+        # maturities differs between filers, so neither the composed sum nor
+        # the all-in tag is reliably the larger. A component is by definition
+        # never bigger than the total, so the max IS the total -- the same
+        # reasoning extract_revenue() uses to settle American Tower vs
+        # BlackRock. Preferring the components alone gave Coca-Cola $4.5bn
+        # against an actual $43.6bn.
+        total_debt = max(cands) if cands else None
+        # Net debt nets only cash and near-cash; it is negative for a company
+        # holding more liquidity than borrowings, which is meaningful, not an
+        # error, so it is emitted as filed.
+        liquid = (cash or 0.0) + (sti or 0.0) if (cash is not None or sti is not None) else None
+        net_debt = (total_debt - liquid) if (total_debt is not None and liquid is not None) else None
+
         fq = fiscal_label(start, end, fiscal_years)
 
         rows.append({
@@ -773,6 +918,16 @@ def build_rows(ticker, meta, facts, cutoff: date):
             "ocf": ocf,
             "capex": (abs(capex) if capex is not None else None),
             "fcf": fcf,
+            "interest_expense": val("interest_expense"),
+            "cash": cash,
+            "short_term_investments": sti,
+            "total_debt": total_debt,
+            "net_debt": net_debt,
+            "equity": equity,
+            "assets": assets,
+            "liabilities": bal("liabilities"),
+            "current_assets": cur_a,
+            "current_liabilities": cur_l,
             "gross_margin_pct": margin(gross),
             "ebit_margin_pct": margin(ebit),
             "ebitda_margin_pct": margin(ebitda),
@@ -786,12 +941,12 @@ def build_rows(ticker, meta, facts, cutoff: date):
 
     # drop rows that carry no financial content at all
     money = ("revenue", "gross_profit", "ebit", "net_income", "eps_diluted",
-             "ocf", "fcf")
+             "ocf", "fcf", "equity", "assets", "total_debt")
     rows = [r for r in rows if any(r[c] is not None for c in money)]
 
     rows = drop_impossible_revenue(rows, annual_series.get("revenue", {}), fiscal_years)
     rows = collapse_near_duplicates(rows)
-    rows += annual_only_rows(ticker, meta, annual_series, units, rows, cutoff)
+    rows += annual_only_rows(ticker, meta, annual_series, units, rows, cutoff, balance)
     return rows
 
 
@@ -851,7 +1006,10 @@ def collapse_near_duplicates(rows, tol_days=12):
     if len(rows) < 2:
         return rows
     fields = ("revenue", "gross_profit", "ebit", "ebitda", "net_income",
-              "eps_diluted", "ocf", "capex", "fcf")
+              "eps_diluted", "ocf", "capex", "fcf", "interest_expense",
+              "cash", "short_term_investments", "total_debt", "net_debt",
+              "equity", "assets", "liabilities", "current_assets",
+              "current_liabilities")
     ordered = sorted(rows, key=lambda r: r["period_end"])
 
     out, group = [], [ordered[0]]
@@ -884,7 +1042,8 @@ def _merge_group(group, fields):
     return best
 
 
-def annual_only_rows(ticker, meta, annual_series, units, quarterly_rows, cutoff):
+def annual_only_rows(ticker, meta, annual_series, units, quarterly_rows, cutoff,
+                     balance=None):
     """
     Emit a full-year row for any fiscal year with NO quarterly coverage.
 
@@ -923,6 +1082,20 @@ def annual_only_rows(ticker, meta, annual_series, units, quarterly_rows, cutoff)
         gross, net, eps = val("gross_profit"), val("net_income"), val("eps_diluted")
         ocf, capex = val("ocf"), val("capex")
         fcf = (ocf - abs(capex)) if (ocf is not None and capex is not None) else None
+
+        # Balance sheet for annual-only filers. These are the same INSTANT
+        # facts build_rows uses, keyed by the fiscal-year end date -- a 20-F
+        # filer has a balance sheet even though it never files a 10-Q, and
+        # without this the whole health pillar is blank for ~330 companies.
+        bal = (lambda f: (balance or {}).get(f, {}).get(end))
+        b_cash, b_sti = bal("cash"), bal("short_term_investments")
+        b_lt, b_st, b_tag = bal("debt_lt"), bal("debt_st"), bal("debt_total_tag")
+        composed = (b_lt + (b_st or 0.0)) if b_lt is not None else None
+        cands = [v for v in (composed, b_tag, b_st) if v is not None]
+        b_debt = max(cands) if cands else None
+        b_liquid = ((b_cash or 0.0) + (b_sti or 0.0)
+                    if (b_cash is not None or b_sti is not None) else None)
+        b_net = (b_debt - b_liquid) if (b_debt is not None and b_liquid is not None) else None
         if gross is not None and rev is not None and gross > rev * 1.005:
             gross = None          # same incompatible-basis guard as quarterly rows
         ebitda = (ebit + da) if (ebit is not None and da is not None) else None
@@ -942,6 +1115,13 @@ def annual_only_rows(ticker, meta, annual_series, units, quarterly_rows, cutoff)
             "net_income": net, "eps_diluted": eps,
             "ocf": ocf, "capex": (abs(capex) if capex is not None else None),
             "fcf": fcf,
+            "interest_expense": val("interest_expense"),
+            "cash": b_cash, "short_term_investments": b_sti,
+            "total_debt": b_debt, "net_debt": b_net,
+            "equity": bal("equity"), "assets": bal("assets"),
+            "liabilities": bal("liabilities"),
+            "current_assets": bal("current_assets"),
+            "current_liabilities": bal("current_liabilities"),
             "gross_margin_pct": margin(gross), "ebit_margin_pct": margin(ebit),
             "ebitda_margin_pct": margin(ebitda), "net_margin_pct": margin(net),
             "fcf_margin_pct": margin(fcf),
@@ -981,7 +1161,11 @@ def fetch_one(rec, cutoff):
 def append(path, rows, columns):
     if not rows:
         return
-    df = pd.DataFrame(rows)[columns]
+    # reindex, not [columns]. Selection raises KeyError when a batch happens to
+    # contain only annual_only_rows, which do not emit the balance-sheet keys --
+    # a foreign-private-issuer-only batch would take the whole run down. reindex
+    # fills the gap with NaN and keeps the column order stable.
+    df = pd.DataFrame(rows).reindex(columns=columns)
     need_header = (not os.path.exists(path)) or os.path.getsize(path) == 0
     df.to_csv(path, mode="a", header=need_header, index=False)
 
@@ -989,7 +1173,9 @@ def append(path, rows, columns):
 COLUMNS = [
     "ticker", "company", "period_end", "fiscal_quarter", "currency",
     "revenue", "gross_profit", "ebit", "ebitda", "net_income", "eps_diluted",
-    "ocf", "capex", "fcf",
+    "ocf", "capex", "fcf", "interest_expense",
+    "cash", "short_term_investments", "total_debt", "net_debt", "equity",
+    "assets", "liabilities", "current_assets", "current_liabilities",
     "gross_margin_pct", "ebit_margin_pct", "ebitda_margin_pct", "net_margin_pct",
     "fcf_margin_pct",
     "period_start", "period_type", "q4_derived", "source",

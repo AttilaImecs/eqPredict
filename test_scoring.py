@@ -290,6 +290,92 @@ class TestRules(unittest.TestCase):
         self.assertEqual(r["V1_pe_vs_peers"][0], 0.0)
 
 
+class TestHealth(unittest.TestCase):
+    """Balance-sheet pillar. Leverage is the thing the scorer was blind to for
+    its whole life, so the guards around it matter more than the bands."""
+
+    def setUp(self):
+        self.ctx = sc.PeerContext({}, {}, sc.DEFAULTS)
+
+    def m(self, **kw):
+        b = Blank(_sector="Industrials", pos_ttm=0, pos_ttm_known=0)
+        b.update(kw)
+        return b
+
+    def test_banks_are_exempt_from_leverage(self):
+        """Deposits are not borrowings. A 10x debt/equity is ordinary for a
+        bank, so scoring it would penalise the entire sector for existing --
+        the pillar is dropped and flagged instead."""
+        r = sc.rules_health(self.m(_sector="Financials", net_debt_to_ebitda=8.0,
+                                   debt_to_equity=10.0), self.ctx)
+        self.assertTrue(all(v is None for v, _ in r.values()))
+        flags = sc.flags(self.m(_sector="Financials"), {})
+        self.assertIn("leverage_not_applicable", flags)
+
+    def test_bank_total_renormalises_over_five_pillars(self):
+        """Dropping health must not lower a bank's score."""
+        bank = self.m(_sector="Financials", net_margin=20.0, profitable_q=12,
+                      rev_cagr=8.0, ret_12m=10.0, pos_ttm=3, pos_ttm_known=3)
+        total, pillars, _, _, _ = sc.score_one(bank, self.ctx)
+        self.assertIsNone(pillars["health"])
+        self.assertGreater(total, 0.0)
+        self.assertLessEqual(total, 100.0)
+
+    def test_net_cash_scores_top_band(self):
+        r = sc.rules_health(self.m(net_debt_to_ebitda=-1.5), self.ctx)
+        self.assertEqual(r["H1_net_debt_to_ebitda"][0], 6)
+
+    def test_leverage_bands_are_monotonic(self):
+        prev = None
+        for lev in (-1.0, 0.5, 1.5, 2.5, 4.0, 5.5, 9.0):
+            pts = sc.rules_health(self.m(net_debt_to_ebitda=lev), self.ctx)["H1_net_debt_to_ebitda"][0]
+            if prev is not None:
+                self.assertLessEqual(pts, prev, "more leverage scored higher at %s" % lev)
+            prev = pts
+
+    def test_health_pillar_totals_twenty(self):
+        total = sum(mx for _, mx in sc.rules_health(self.m(), self.ctx).values())
+        self.assertAlmostEqual(total, 20.0)
+
+    def test_high_leverage_and_thin_cover_flagged(self):
+        f = sc.flags(self.m(net_debt_to_ebitda=7.0, interest_coverage=1.1,
+                            net_debt=5e9), {})
+        self.assertIn("high_leverage", f)
+        self.assertIn("thin_interest_cover", f)
+
+    def test_negative_equity_flagged_not_scored(self):
+        """A negative denominator would make debt/equity read as LOW leverage."""
+        f = sc.flags(self.m(negative_equity=True), {})
+        self.assertIn("negative_equity", f)
+
+
+class TestAnnualBasis(unittest.TestCase):
+    """Foreign private issuers file 20-F/40-F and never a 10-Q. They were
+    silently never rated -- 327 companies whose data the fetcher had already
+    gone to trouble to capture. Same rubric, period length changed."""
+
+    def test_ttm_generalises_over_period_length(self):
+        """ppy=4 sums four quarters; ppy=1 takes one already-annual row."""
+        quarters = [{"revenue": "25"}] * 4
+        self.assertEqual(sc.ttm(quarters, "revenue", ppy=4), 100.0)
+        annual = [{"revenue": "100"}]
+        self.assertEqual(sc.ttm(annual, "revenue", ppy=1), 100.0)
+
+    def test_annual_offset_reaches_back_in_years(self):
+        rows = [{"revenue": "50"}, {"revenue": "75"}, {"revenue": "100"}]
+        self.assertEqual(sc.ttm(rows, "revenue", ppy=1), 100.0)
+        self.assertEqual(sc.ttm(rows, "revenue", 1, ppy=1), 75.0)
+        self.assertEqual(sc.ttm(rows, "revenue", 2, ppy=1), 50.0)
+
+    def test_partial_annual_window_returns_none(self):
+        self.assertIsNone(sc.ttm([{"revenue": None}], "revenue", ppy=1))
+
+    def test_three_annual_periods_is_the_floor(self):
+        self.assertEqual(sc.MIN_ANNUAL_PERIODS, 3)
+        self.assertLess(sc.MIN_ANNUAL_PERIODS, sc.MIN_QUARTERS,
+                        "an annual filer must not need 8 years of history")
+
+
 class TestConfig(unittest.TestCase):
     def test_deep_merge_leaves_siblings_alone(self):
         cfg = sc.deep_merge(sc.DEFAULTS, {"pillar_weights": {"valuation": 30.0}})

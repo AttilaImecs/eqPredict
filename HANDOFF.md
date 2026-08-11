@@ -858,3 +858,92 @@ caught**. Two gaps found that way and closed:
 
 When adding a rule, add the case that would have caught its absence, and re-run
 the mutation check rather than trusting a green suite.
+
+---
+
+## 14. Balance sheet, annual-basis scoring, and the two workbooks
+
+### Balance sheet — INSTANT facts need their own path
+
+`cash, short_term_investments, total_debt, net_debt, equity, assets,
+liabilities, current_assets, current_liabilities` (+ durational
+`interest_expense`). Coverage: equity 99%, cash 96%, assets 96%, total_debt 55%.
+
+These carry an `end` and **no `start`** — a position at a moment, not a flow
+over a period. `_collect()` skips them for exactly that reason, so they go
+through `extract_instant()` and must **never** touch `derive_q4()` or
+`ytd_to_quarterly()`: adding four cash balances does not give you a year's cash.
+The same rule governs `build_excel.py`, where they are kept out of
+`ANNUAL_ADDITIVE`.
+
+**Coca-Cola reported $4.5bn of debt against an actual $43.6bn.** KO tags
+`LongTermDebtAndCapitalLeaseObligations`, which was not in the candidate list,
+so composition fell through to the current portion alone. `total_debt` now
+takes the **max** of the composed components and the all-in tag — whether
+`LongTermDebt` includes current maturities differs by filer, so neither is
+reliably larger, and a component can never exceed the total. Verified after:
+KO $43.6bn, Verizon $165.2bn, Home Depot's $13.9bn equity (buyback-driven),
+Tesla net *cash* of -$35.8bn, JPMorgan's $5.0tn of assets.
+
+### New Health pillar (6th, 20 points)
+
+net debt/EBITDA, interest coverage, current ratio, debt/equity, ROE. Bands
+calibrated against the real distribution — median net debt/EBITDA 1.52,
+debt/equity 0.49, ROE 9.2% — and only 5% of companies max the pillar.
+
+**Banks and insurers are exempt** (`LEVERAGE_EXEMPT`). Deposits are not
+borrowings; a 10x debt/equity is ordinary for a bank, so scoring it would
+penalise the sector for existing. The pillar is dropped, the total renormalised
+over the other five, and `leverage_not_applicable` flagged so it is never
+mistaken for a clean bill of health.
+
+### Annual-basis scoring — 327 companies that were silently never rated
+
+Foreign private issuers file 20-F/40-F and never a 10-Q.
+`fetch_sec_fundamentals.py` captures them via `annual_only_rows()`, but
+`load_quarters()` dropped every `period_type == "FY"` row, so they could not
+reach `MIN_QUARTERS` and were **never scored at all** — the fetcher's work was
+thrown away downstream.
+
+`compute()` is now parameterised by `ppy` (periods per year): 4 for a quarterly
+filer, 1 for an annual one. Every window is a multiple of it, so "3-year
+growth" means 12 quarters or 3 years without any rule branching.
+`period_basis` and `growth_basis` (`annual-3y` / `annual-2y`) record which was
+used so the two are never silently compared.
+
+| | before | after |
+|---|---|---|
+| Companies scored | 2,781 (75%) | **3,117 (84%)** |
+| of which annual-basis | 0 | **301** |
+
+The remaining 610 genuinely have nothing: no CIK, warrants and units, or
+listings too recent to have filed.
+
+**A transient-failure trap:** the full run reported `failed=331`, and those 331
+were almost exactly the FY-only filers — they retried clean. Always diff the
+ticker set against the previous run before trusting a rebuild; `ok=` in the log
+is not enough.
+
+### Two workbooks
+
+| file | shape | purpose |
+|---|---|---|
+| `Fortune500_SP500_NASDAQ_Financials_5Y.xlsx` | 3,727 x **1,462** | everything per ticker on one row |
+| `Company_Scores.xlsx` | 3,117 x 92 | the ranking, readable |
+
+The **Data** sheet carries it all side by side: 60 months each of `close`,
+`adj_close`, `volume`, `market_cap_est`, `pe_trailing_est`; 38 periods of
+revenue/EBIT/EBITDA/net income/EPS/gross profit; cash flow (`ocf`, `capex`,
+`fcf`); and 27 quarters of balance sheet (`cash`, `total_debt`, `net_debt`,
+`equity`, `assets`). Verified on Apple: FY2025 revenue $416.2bn, FCF $98.8bn,
+net debt $19.9bn, market cap $4.51tn, P/E 35.0.
+
+`Company_Scores.xlsx` is separate because the Data sheet is 1,462 columns wide —
+the right shape for analysis, the wrong shape for reading a ranking. It has a
+`Scores` sheet and a `Ranked by sector` sheet.
+
+**A latent crash fixed on the way:** `style()` did `int(sample.str.len().max() or 10)`,
+and `max()` returns NaN for an all-empty column. NaN is **truthy**, so the `or 10`
+fallback never fired and `int(NaN)` raised. Only `pd.isna` tests this correctly.
+Also `append()` now uses `reindex` rather than `[columns]`, which raised
+KeyError on a batch containing only annual-only rows.

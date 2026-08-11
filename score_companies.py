@@ -126,13 +126,35 @@ FULL_WINDOW = 16
 FALLBACK_WINDOW = 12
 MIN_QUARTERS = 8
 
+# Foreign private issuers file a 20-F/40-F annually and never a 10-Q, so they
+# have no quarterly rows at all -- 327 companies. fetch_sec_fundamentals.py
+# goes to real trouble to capture them (annual_only_rows), and dropping them
+# here threw that away: they were silently never rated.
+#
+# They are scored on the SAME rubric with the period length changed. `ppy`
+# (periods per year) is 4 for a quarterly filer and 1 for an annual one, and
+# every window below is expressed as a multiple of it, so a "3-year growth
+# rate" means 12 quarters or 3 years without any rule needing to know which.
+# `growth_basis` records the basis so an annual score is never silently
+# compared against a quarterly one.
+MIN_ANNUAL_PERIODS = 3
+
 # How far the two independent P/E estimates may differ before both are
 # distrusted. 50% is deliberately loose: it catches the 20x split errors this
 # is aimed at without discarding ordinary timing noise between a month-end
 # price snapshot and a TTM earnings window.
 PE_TOLERANCE = 0.5
 
-PILLARS = ["growth", "profitability", "quality", "valuation", "momentum"]
+PILLARS = ["growth", "profitability", "quality", "health", "valuation", "momentum"]
+
+# Leverage is not comparable for banks and insurers. Their liabilities ARE the
+# business -- deposits, policy reserves and repo funding are not borrowings in
+# the sense debt/equity assumes, and a 10x ratio is ordinary rather than
+# distressed. Scoring them on it would penalise the whole sector for existing.
+# The health pillar is DROPPED for these and the total renormalised over the
+# other five, with `leverage_not_applicable` flagged so it is never mistaken
+# for a clean bill of health.
+LEVERAGE_EXEMPT = ("Financials",)
 
 # --------------------------------------------------------------------------
 # TUNABLE CONFIGURATION
@@ -165,6 +187,7 @@ DEFAULTS = {
         "growth": 20.0,
         "profitability": 20.0,
         "quality": 20.0,
+        "health": 20.0,
         "valuation": 20.0,
         "momentum": 20.0,
     },
@@ -191,6 +214,14 @@ DEFAULTS = {
         "Q2_growth_stability":  [[5, 4], [10, 3.2], [20, 2.4], [35, 1.6], [60, 0.8]],
         "Q3_share_count":       [[-3, 4], [0, 3.2], [2, 2.4], [10, 1.6], [25, 0.8]],
         "Q5_cash_conversion":   [[90, 4], [70, 3.2], [50, 2.4], [30, 1.4], [10, 0.6]],
+        # Leverage. Net cash (<=0) is the top band: a company owing less than
+        # it holds is not levered at all. Above ~4x, refinancing risk starts to
+        # dominate the equity story regardless of how good the business is.
+        "H1_net_debt_to_ebitda": [[0, 6], [1, 5.5], [2, 4.5], [3, 3], [4.5, 1.5], [6, 0.5]],
+        "H2_interest_coverage": [[15, 5], [8, 4], [4, 3], [2, 1.5], [1, 0.5]],
+        "H3_current_ratio":     [[2.0, 4], [1.5, 3.5], [1.2, 2.5], [1.0, 1.5], [0.8, 0.5]],
+        "H4_debt_to_equity":    [[0.3, 3], [0.6, 2.5], [1.0, 2], [2.0, 1], [3.0, 0.5]],
+        "H5_return_on_equity":  [[20, 2], [12, 1.5], [6, 1], [0, 0.5]],
         "V3_peg":               [[1, 3], [1.5, 2.25], [2.5, 1.5], [4, 0.75]],
         "V4_pe_vs_history":     [[0.7, 2], [0.9, 1.5], [1.1, 1], [1.4, 0.5]],
         "V5_price_to_fcf":      [[12, 4], [18, 3.2], [28, 2.2], [45, 1.2], [70, 0.5]],
@@ -266,20 +297,20 @@ def band_low(value, table):
 # Load
 # --------------------------------------------------------------------------
 
-def load_quarters():
-    """ticker -> chronologically sorted quarterly rows, deduped on period_end.
+def load_periods():
+    """(quarterly rows, annual rows) per ticker, each sorted and deduped.
 
-    FY rows are excluded here. They exist only for foreign private issuers with
-    no quarterly coverage (see HANDOFF.md); summing them into a TTM alongside
-    real quarters would double-count a year.
+    The two are kept SEPARATE and never concatenated: summing an FY row into a
+    TTM alongside four quarters double-counts a year. A company is scored on
+    one basis or the other, never a mixture -- see MIN_ANNUAL_PERIODS.
     """
-    seen = collections.defaultdict(dict)
+    q = collections.defaultdict(dict)
+    a = collections.defaultdict(dict)
     for r in csv.DictReader(open(Q_FILE)):
-        if r["period_type"] != "Q":
-            continue
-        seen[r["ticker"]][r["period_end"]] = r
-    return {t: sorted(d.values(), key=lambda r: r["period_end"])
-            for t, d in seen.items()}
+        (q if r["period_type"] == "Q" else a)[r["ticker"]][r["period_end"]] = r
+    srt = lambda d: {t: sorted(v.values(), key=lambda r: r["period_end"])
+                     for t, v in d.items()}
+    return srt(q), srt(a)
 
 
 def load_prices():
@@ -316,16 +347,19 @@ def load_keyed(path, key="ticker"):
 # Metrics
 # --------------------------------------------------------------------------
 
-def ttm(qs, measure, offset=0):
-    """Sum `measure` over the 4 quarters ending `offset` quarters back.
+def ttm(qs, measure, offset=0, ppy=4):
+    """Sum `measure` over the `ppy` periods ending `offset` periods back.
+
+    ppy=4 sums four quarters into a trailing year; ppy=1 takes a single
+    already-annual row. Same arithmetic, so no rule needs to branch.
 
     Returns None unless all four are present -- a partial TTM understates the
     figure, and an understated denominator silently inflates every margin and
     multiple built on it.
     """
     end = len(qs) - offset
-    win = qs[end - 4:end]
-    if len(win) < 4:
+    win = qs[end - ppy:end]
+    if len(win) < ppy:
         return None
     vals = [num(r[measure]) for r in win]
     if any(v is None for v in vals):
@@ -427,7 +461,7 @@ def split_adjust(series):
     return adj
 
 
-def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None):
+def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None, ppy=4):
     """Everything the rules need, or None where the data will not support it.
 
     `as_of` ("YYYY-MM") scores the company as it looked at that month: every
@@ -445,30 +479,31 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None):
     """
     if as_of:
         qs = [r for r in qs if r["period_end"][:7] <= as_of]
-    m = {"quarters": len(qs)}
-    if len(qs) < MIN_QUARTERS:
+    m = {"quarters": len(qs), "ppy": ppy}
+    if len(qs) < (MIN_QUARTERS if ppy == 4 else MIN_ANNUAL_PERIODS):
         return None
+    ann = "annual-" if ppy == 1 else ""
 
     # --- growth basis: prefer a true 3-year comparison ---
-    if len(qs) >= FULL_WINDOW:
-        lag, years, m["growth_basis"] = 12, 3.0, "3y"
-    elif len(qs) >= FALLBACK_WINDOW:
-        lag, years, m["growth_basis"] = 8, 2.0, "2y"
+    if len(qs) >= 4 * ppy:
+        lag, years, m["growth_basis"] = 3 * ppy, 3.0, ann + "3y"
+    elif len(qs) >= 3 * ppy:
+        lag, years, m["growth_basis"] = 2 * ppy, 2.0, ann + "2y"
     else:
         lag, years, m["growth_basis"] = None, None, "insufficient"
 
-    rev0 = ttm(qs, "revenue")
-    ni0 = ttm(qs, "net_income")
+    rev0 = ttm(qs, "revenue", ppy=ppy)
+    ni0 = ttm(qs, "net_income", ppy=ppy)
     m["revenue_ttm"] = rev0
     m["net_income_ttm"] = ni0
 
-    rev_prior = ttm(qs, "revenue", 4)
+    rev_prior = ttm(qs, "revenue", 4, ppy=ppy)
     m["rev_yoy"] = ((rev0 / rev_prior - 1) * 100
                     if rev0 and rev_prior and rev_prior > 0 else None)
 
     if lag:
-        m["rev_cagr"] = cagr(rev0, ttm(qs, "revenue", lag), years)
-        m["eps_cagr"] = cagr(ttm(qs, "eps_diluted"), ttm(qs, "eps_diluted", lag), years)
+        m["rev_cagr"] = cagr(rev0, ttm(qs, "revenue", lag, ppy=ppy), years)
+        m["eps_cagr"] = cagr(ttm(qs, "eps_diluted", ppy=ppy), ttm(qs, "eps_diluted", lag, ppy=ppy), years)
     else:
         m["rev_cagr"] = m["eps_cagr"] = None
 
@@ -477,7 +512,7 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None):
                   if m["rev_yoy"] is not None and m["rev_cagr"] is not None else None)
 
     # --- margins ---
-    ebit0, gp0 = ttm(qs, "ebit"), ttm(qs, "gross_profit")
+    ebit0, gp0 = ttm(qs, "ebit", ppy=ppy), ttm(qs, "gross_profit", ppy=ppy)
     m["net_margin"] = ni0 / rev0 * 100 if rev0 and rev0 > 0 and ni0 is not None else None
     m["ebit_margin"] = ebit0 / rev0 * 100 if rev0 and rev0 > 0 and ebit0 is not None else None
     m["gross_margin"] = gp0 / rev0 * 100 if rev0 and rev0 > 0 and gp0 is not None else None
@@ -485,26 +520,27 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None):
     # margin trend in percentage points across the window
     m["margin_delta"] = None
     if lag and rev0 and rev0 > 0 and ni0 is not None:
-        rev_then, ni_then = ttm(qs, "revenue", lag), ttm(qs, "net_income", lag)
+        rev_then, ni_then = ttm(qs, "revenue", lag, ppy=ppy), ttm(qs, "net_income", lag, ppy=ppy)
         if rev_then and rev_then > 0 and ni_then is not None:
             m["margin_delta"] = m["net_margin"] - ni_then / rev_then * 100
 
     # --- consistency ---
-    window = qs[-FALLBACK_WINDOW:]
+    window = qs[-3 * ppy:]
     ni_vals = [num(r["net_income"]) for r in window]
     known = [v for v in ni_vals if v is not None]
     m["profitable_q"] = sum(1 for v in known if v > 0) if known else None
     m["window_q"] = len(known)
 
     growth_pts = []
-    for i in range(max(4, len(qs) - 8), len(qs)):
-        a, b = num(qs[i]["revenue"]), num(qs[i - 4]["revenue"])
+    for i in range(max(ppy, len(qs) - 2 * ppy), len(qs)):
+        a, b = num(qs[i]["revenue"]), num(qs[i - ppy]["revenue"])
         if a is not None and b and b > 0:
             growth_pts.append((a / b - 1) * 100)
-    m["growth_sd"] = statistics.pstdev(growth_pts) if len(growth_pts) >= 4 else None
+    m["growth_sd"] = (statistics.pstdev(growth_pts)
+                      if len(growth_pts) >= (4 if ppy == 4 else 2) else None)
 
     # positive earnings across the three TTM slices
-    ttms = [ttm(qs, "net_income", k) for k in (0, 4, 8)]
+    ttms = [ttm(qs, "net_income", k, ppy=ppy) for k in (0, ppy, 2 * ppy)]
     m["pos_ttm"] = sum(1 for v in ttms if v is not None and v > 0)
     m["pos_ttm_known"] = sum(1 for v in ttms if v is not None)
 
@@ -513,8 +549,8 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None):
     if lag:
         adj = reject_outliers(split_adjust(implied_shares(qs)))
         n = len(qs)
-        now_sh = [s for i, s in adj if i >= n - 4]
-        then_sh = [s for i, s in adj if n - 4 - lag <= i < n - lag]
+        now_sh = [s for i, s in adj if i >= n - ppy]
+        then_sh = [s for i, s in adj if n - ppy - lag <= i < n - lag]
         if now_sh and then_sh:
             a, b = statistics.median(now_sh), statistics.median(then_sh)
             if b > 0:
@@ -524,7 +560,7 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None):
     # Present only if fetch_sec_fundamentals.py was run with the ocf/capex
     # concepts; older data_quarterly.csv files have no such columns and every
     # cash rule below degrades to "no data" rather than erroring.
-    fcf0 = ttm(qs, "fcf") if "fcf" in qs[-1] else None
+    fcf0 = ttm(qs, "fcf", ppy=ppy) if "fcf" in qs[-1] else None
     m["fcf_ttm"] = fcf0
     m["fcf_margin"] = fcf0 / rev0 * 100 if fcf0 is not None and rev0 and rev0 > 0 else None
     # Cash conversion: how much of reported profit arrived as cash. This is the
@@ -533,6 +569,51 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None):
     # POSITIVE earnings; against a loss the ratio is not interpretable.
     m["fcf_conversion"] = (fcf0 / ni0 * 100
                            if fcf0 is not None and ni0 is not None and ni0 > 0 else None)
+
+    # --- balance sheet ---
+    # These are INSTANT facts: a position at the latest period end, not a sum
+    # over the window. Taking the most recent quarter that reports each one,
+    # because a company's leverage today is what matters, not its average.
+    def latest(field):
+        if field not in qs[-1]:
+            return None
+        for r in reversed(qs):
+            v = num(r.get(field))
+            if v is not None:
+                return v
+        return None
+
+    equity = latest("equity")
+    m["equity"] = equity
+    m["total_debt"] = latest("total_debt")
+    m["net_debt"] = latest("net_debt")
+    m["cash"] = latest("cash")
+    m["assets"] = latest("assets")
+
+    ebitda_ttm = ttm(qs, "ebitda", ppy=ppy)
+    ebit_ttm = ttm(qs, "ebit", ppy=ppy)
+    m["ebitda_ttm"] = ebitda_ttm
+    # Leverage against earnings power. Undefined when EBITDA is zero or
+    # negative -- "how many years of profit to repay the debt" has no answer
+    # for a company with no profit, and a negative denominator would flip the
+    # sign and score a distressed borrower as conservatively financed.
+    m["net_debt_to_ebitda"] = (m["net_debt"] / ebitda_ttm
+                               if m["net_debt"] is not None and ebitda_ttm and ebitda_ttm > 0
+                               else None)
+    interest = ttm(qs, "interest_expense", ppy=ppy)
+    interest = abs(interest) if interest is not None else None
+    m["interest_expense_ttm"] = interest
+    m["interest_coverage"] = (ebit_ttm / interest
+                              if ebit_ttm is not None and interest and interest > 0 else None)
+    ca, cl = latest("current_assets"), latest("current_liabilities")
+    m["current_ratio"] = ca / cl if ca is not None and cl and cl > 0 else None
+    # Negative equity makes debt/equity meaningless (a large negative ratio
+    # would read as low leverage), so it is dropped and flagged instead.
+    m["debt_to_equity"] = (m["total_debt"] / equity
+                           if m["total_debt"] is not None and equity and equity > 0 else None)
+    m["roe"] = (ni0 / equity * 100
+                if ni0 is not None and equity and equity > 0 else None)
+    m["negative_equity"] = bool(equity is not None and equity < 0)
 
     # --- valuation ---
     if as_of:
@@ -692,6 +773,28 @@ def rules_quality(m, ctx):
     return r
 
 
+def rules_health(m, ctx):
+    """Balance-sheet strength -- the blind spot this scorer used to declare
+    unfixable. Now sourced from the instant (point-in-time) facts that
+    fetch_sec_fundamentals.py pulls alongside the income statement.
+
+    Dropped entirely for banks and insurers; see LEVERAGE_EXEMPT.
+    """
+    B = ctx.cfg["bands"]
+    if (m.get("_sector") or "") in LEVERAGE_EXEMPT:
+        return {k: (None, mx) for k, mx in
+                (("H1_net_debt_to_ebitda", 6), ("H2_interest_coverage", 5),
+                 ("H3_current_ratio", 4), ("H4_debt_to_equity", 3),
+                 ("H5_return_on_equity", 2))}
+    return {
+        "H1_net_debt_to_ebitda": (band_low(m["net_debt_to_ebitda"], B["H1_net_debt_to_ebitda"]), 6),
+        "H2_interest_coverage":  (band(m["interest_coverage"], B["H2_interest_coverage"]), 5),
+        "H3_current_ratio":      (band(m["current_ratio"], B["H3_current_ratio"]), 4),
+        "H4_debt_to_equity":     (band_low(m["debt_to_equity"], B["H4_debt_to_equity"]), 3),
+        "H5_return_on_equity":   (band(m["roe"], B["H5_return_on_equity"]), 2),
+    }
+
+
 def rules_valuation(m, ctx):
     """Valuation multiples are scored PEER-RELATIVE for the same reason
     margins are, plus one specific to this pillar: absolute P/E bands rot as
@@ -740,6 +843,7 @@ RULESETS = {
     "growth": rules_growth,
     "profitability": rules_profitability,
     "quality": rules_quality,
+    "health": rules_health,
     "valuation": rules_valuation,
     "momentum": rules_momentum,
 }
@@ -843,6 +947,15 @@ def flags(m, pillars):
         f.append("expensive_pe")
     if m.get("pe_unreliable"):
         f.append("pe_unreliable")
+    if (m.get("_sector") or "") in LEVERAGE_EXEMPT:
+        f.append("leverage_not_applicable")
+    if m.get("negative_equity"):
+        f.append("negative_equity")
+    if m.get("net_debt_to_ebitda") is not None and m["net_debt_to_ebitda"] > 5:
+        f.append("high_leverage")
+    if (m.get("interest_coverage") is not None and m["interest_coverage"] < 1.5
+            and m.get("net_debt") and m["net_debt"] > 0):
+        f.append("thin_interest_cover")
     return f
 
 
@@ -902,12 +1015,14 @@ def main():
         print()
         return
 
-    quarters = load_quarters()
+    quarters, annuals = load_periods()
     px, dv, pe_hist, mc_hist = load_prices()
     snaps = load_keyed(S_FILE)
     uni = load_keyed(U_FILE)
     sic = load_keyed(SIC_FILE) if os.path.exists(SIC_FILE) else {}
-    print("loaded %d tickers with quarterly history" % len(quarters), file=sys.stderr)
+    annual_only = set(annuals) - set(quarters)
+    print("loaded %d tickers with quarterly history, %d annual-only (20-F/40-F "
+          "filers)" % (len(quarters), len(annual_only)), file=sys.stderr)
 
     # Sector resolution: the Wikipedia GICS sector wins where it exists, since
     # the S&P names are actually indexed on it, and the SIC-derived sector
@@ -931,11 +1046,21 @@ def main():
 
     # PASS 1 -- measure everyone. Peer-relative rules cannot be evaluated
     # until every peer has been measured, which is why this is split in two.
-    metrics, not_rated = {}, 0
+    metrics, not_rated, on_annual = {}, 0, 0
     for t in uni:
-        m = compute(t, quarters.get(t, []), snaps.get(t), px, dv, pe_hist,
-                    mc_hist, args.as_of)
-        if m is None:          # fewer than MIN_QUARTERS inside the window
+        qrows = quarters.get(t, [])
+        # Quarterly wins where it exists -- it is the finer measurement. The
+        # annual path is a fallback for filers who never report quarterly, not
+        # an alternative for those who do.
+        if len(qrows) >= MIN_QUARTERS:
+            m = compute(t, qrows, snaps.get(t), px, dv, pe_hist, mc_hist,
+                        args.as_of, ppy=4)
+        else:
+            m = compute(t, annuals.get(t, []), snaps.get(t), px, dv, pe_hist,
+                        mc_hist, args.as_of, ppy=1)
+            if m is not None:
+                on_annual += 1
+        if m is None:
             not_rated += 1
             continue
         m["_sector"] = sector_of.get(t, "")
@@ -962,7 +1087,8 @@ def main():
             "score": round(total, 1),
             "band": next(b for lo, b in cfg["score_bands"] if total >= lo),
             "confidence": round(conf, 2),
-            "quarters": m["quarters"],
+            "periods": m["quarters"],
+            "period_basis": "annual" if m.get("ppy") == 1 else "quarterly",
             "growth_basis": m["growth_basis"],
             "as_of": args.as_of or "latest",
             "window_end": m.get("window_end", ""),
@@ -977,7 +1103,10 @@ def main():
                          "peg", "pe_vs_own", "ret_12m", "ret_6m", "drawdown",
                          "volatility", "dollar_volume", "market_cap",
                          "fcf_ttm", "fcf_margin", "fcf_conversion", "p_fcf",
-                         "pe_reported", "pe_mcap", "market_cap_source"]},
+                         "pe_reported", "pe_mcap", "market_cap_source",
+                         "equity", "total_debt", "net_debt", "cash", "assets",
+                         "net_debt_to_ebitda", "interest_coverage",
+                         "current_ratio", "debt_to_equity", "roe"]},
             "peer_net_margin_median": (
                 round(ctx.median(m["_sector"], "net_margin"), 2)
                 if ctx.median(m["_sector"], "net_margin") is not None else ""),
@@ -1026,8 +1155,9 @@ def main():
         for r in rows:
             w.writerow({k: ("" if v is None else v) for k, v in r.items()})
 
-    print("scored %d, not rated %d  (as-of %s) -> %s"
-          % (len(rows), not_rated, args.as_of or "latest", args.out),
+    print("scored %d (%d on an annual basis), not rated %d  (as-of %s) -> %s"
+          % (len(rows), sum(1 for r in rows if str(r["growth_basis"]).startswith("annual")),
+             not_rated, args.as_of or "latest", args.out),
           file=sys.stderr)
     dist = collections.Counter(r["band"] for r in rows)
     for _, b in cfg["score_bands"]:
