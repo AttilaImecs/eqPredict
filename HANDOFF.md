@@ -1206,3 +1206,76 @@ multi-bagger. Its top decile beat its bottom decile by 83 points over 20 months
 almost entirely by not owning the bottom. Used as a screen to exclude, it earns
 its keep; used as a buy list, it will systematically miss cyclical recoveries —
 by construction, not by accident.
+
+---
+
+## 18. Which holding period? — `sweep_horizons.py`
+
+`python3 sweep_horizons.py --min-confidence 0.6`
+
+### Trailing periods are circular — read them as a control, not a result
+
+Momentum is 20% of the score and is built from the trailing 6- and 12-month
+return, so any period starting before window_end measures the score partly
+against its own input.
+
+| period | kind | rho (2024-12) | rho (2025-12) | rho (2026-06) |
+|---|---|---|---|---|
+| W-1y → W | **trailing** | +0.485 | +0.477 | +0.398 |
+| W-1y → W+1y | mixed | +0.454 | — | — |
+| W-6m → W+6m | mixed | +0.382 | +0.312 | — |
+| **W → W+3m** | **forward** | **+0.304** | **+0.206** | — |
+| W → W+6m | forward | +0.288 | +0.194 | — |
+| W → W+1y | forward | +0.245 | — | — |
+| W → W+20m | forward | +0.262 | — | — |
+| W+3m → W+1y | forward | +0.135 | — | — |
+| W+6m → W+1y | forward | +0.134 | — | — |
+
+The trailing number is the highest in the table, which is exactly what
+circularity looks like. Use it only as a ceiling.
+
+**Data limit:** only the 2024-12 window reaches a full year forward — the price
+data ends 2026-08. Every "+1y" row is a single observation.
+
+### The delayed-recognition hypothesis is not supported
+
+The idea that the market takes a couple of years to reward sustained
+performance predicts a signal that STRENGTHENS with lag. The opposite happens:
+the first three months carry the most signal (+0.304 / +0.206) in both usable
+windows, and starting three months later halves it (+0.135).
+
+### What actually governs the edge: market direction, not holding period
+
+Every 3-month block after window_end, sorted by how the median stock did:
+
+| block | market (median) | rho |
+|---|---|---|
+| 2024-12 W+0→3 | −8.2% | **+0.304** |
+| 2025-12 W+0→3 | −4.2% | **+0.206** |
+| 2024-12 W+12→15 | −3.9% | **+0.159** |
+| 2024-12 W+9→12 | −2.6% | **+0.224** |
+| 2024-12 W+3→6 | +4.4% | +0.065 |
+| 2024-12 W+6→9 | +5.0% | −0.039 |
+| 2025-12 W+3→6 | +10.4% | +0.107 |
+| 2024-12 W+15→18 | +10.7% | +0.026 |
+
+Falling blocks: mean rho **+0.223** (range +0.159..+0.304).
+Rising blocks: mean rho **+0.040** (range −0.039..+0.107).
+Rank correlation between market direction and the score's rho: **−0.810**.
+
+The separation is clean — every falling block beats every rising block. This is
+the same finding as section 17 seen from another angle: a screen that avoids
+losers pays off when there are losers to avoid, and adds almost nothing in a
+rally. The apparent "buy immediately" result is a consequence, not a cause —
+the quarters straight after both window_ends happened to be down quarters.
+
+**n = 8 blocks across 2 windows in one regime.** Suggestive, not established.
+
+### A flaw in this script's own output
+
+The `rho excess` column is identical to `rho raw` in every row, and that is
+arithmetic rather than confirmation: subtracting a single constant (the
+universe median) from every observation preserves rank order exactly, so
+Spearman cannot change. Genuine market-neutralisation needs within-sector
+ranking or a beta adjustment. The column is retained only because removing it
+silently would invite someone to re-derive it and reach the same dead end.
