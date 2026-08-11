@@ -326,3 +326,82 @@ And it is not size-neutral: 1,103 of the disappearances are non-accelerated
 (small) filers against 335 large accelerated. Small companies vanish far more
 often — which is precisely the population a loser-avoidance screen is supposed
 to be catching.
+
+---
+
+## RESULTS — point-in-time, as-filed, 21 windows
+
+Everything below is computed on point-in-time universes with as-filed
+fundamentals. Neither was true of the parent analysis.
+
+| | parent analysis | this |
+|---|---|---|
+| universe | today's listings, all windows | **per-quarter, who actually filed** |
+| fundamentals | companyfacts, as restated today | **DERA, as filed then** |
+| score windows | 9 | **21** |
+| distinct calendar quarters | 8 | **17** |
+| companies per window | ~2,000-3,200 | 2,057-4,667 |
+
+### Entry timing — confirmed, and now on 21 windows
+
+| start \ end | 6m | 9m | 12m | 18m | 21m |
+|---|---|---|---|---|---|
+| **W+0** | +0.163 | +0.165 | +0.162 | +0.180 | **+0.183** |
+| W+3 | +0.102 | +0.122 | +0.124 | +0.146 | +0.152 |
+| W+6 | | +0.083 | +0.100 | +0.126 | +0.132 |
+| W+9 | | | +0.071 | +0.116 | +0.119 |
+| W+12 | | | | +0.107 | +0.118 |
+
+Reading down any column, rho falls monotonically with every quarter of delay —
+the same result as the survivor-anchored run, now on more than twice the
+windows. **Buy at window_end.** Delayed recognition remains contradicted.
+
+### The 2021 windows are thin, not weak
+
+DERA archives begin 2021q1, so a window dated 2021-03 has about one quarter of
+history behind it. Those windows score 350-592 companies against 2,500+ later,
+and their rho is noise. Excluding them:
+
+| block | n_win | mean rho | min | max |
+|---|---|---|---|---|
+| W+0 → W+3 | 17 | +0.151 | +0.005 | +0.246 |
+| W+0 → W+9 | 15 | +0.199 | +0.128 | +0.277 |
+| W+0 → W+12 | 14 | +0.207 | +0.131 | +0.262 |
+| **W+0 → W+18** | 12 | **+0.228** | +0.168 | +0.269 |
+| **W+0 → W+21** | 11 | **+0.230** | +0.186 | +0.270 |
+
+**Every one of those windows is positive.** The floor on W+0 → W+21 is +0.186 —
+better than the mean of the 3-month block. Longer holding is both stronger and
+far more stable, exactly as the survivor-anchored run suggested, but now with a
+minimum that never approaches zero.
+
+**On this evidence: buy at window_end, hold 18-21 months.**
+
+### Removing the bias made the signal SMALLER, then time made it larger
+
+W+0 → W+9 was +0.208 in the parent analysis and is **+0.199** here on
+comparable windows — slightly lower, in the direction expected once
+restatement lookahead and survivor-anchored universes are removed. The parent
+numbers were mildly flattered. The gain came from length, not from the fix:
+extending to 18-21 months reaches +0.23.
+
+### Market direction — the effect keeps shrinking as the sample grows
+
+| claim | sample | rank corr |
+|---|---|---|
+| first estimate | 8 blocks | **−0.810** |
+| de-duplicated by quarter | 8 quarters | **−0.595** |
+| **point-in-time** | **17 quarters** | **−0.429** |
+
+Falling quarters mean +0.144, rising +0.081. The direction has survived every
+enlargement of the sample and the effect size has fallen every time. Treat it
+as a real but modest tendency: the score does more work in falling markets, and
+it is not the dominant factor it first appeared to be.
+
+### What this still cannot tell you
+
+Prices come from Yahoo, which drops delisted history, so **only survivors are
+priced**. The point-in-time universes make the gap visible and measurable — 66%
+priceable in 2021q1 rising to 91% in 2026q1 — but not closed. The
+loser-avoidance claim from the parent analysis therefore remains untested: the
+losers are still the missing population.

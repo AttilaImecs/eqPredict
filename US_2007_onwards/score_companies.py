@@ -1038,7 +1038,10 @@ def main():
 
     quarters, annuals = load_periods()
     px, dv, pe_hist, mc_hist = load_prices()
-    snaps = load_keyed(S_FILE)
+    # Optional. In --as-of mode valuation comes from data_monthly.csv on
+    # purpose -- a snapshot is TODAY's prices and would leak the future into a
+    # historical score -- so a point-in-time run has no snapshot to give.
+    snaps = load_keyed(S_FILE) if os.path.exists(S_FILE) else {}
     uni = load_keyed(U_FILE)
     sic = load_keyed(SIC_FILE) if os.path.exists(SIC_FILE) else {}
     annual_only = set(annuals) - set(quarters)
