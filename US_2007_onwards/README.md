@@ -405,3 +405,77 @@ priced**. The point-in-time universes make the gap visible and measurable — 66
 priceable in 2021q1 rising to 91% in 2026q1 — but not closed. The
 loser-avoidance claim from the parent analysis therefore remains untested: the
 losers are still the missing population.
+
+---
+
+## What predicts SURVIVAL — `survival_test.py`
+
+A different question from the return work, and one the data answers directly:
+point-in-time universes record who filed each quarter, so "still filing N
+quarters later" is an observed outcome, not a model. Crucially it is available
+for the delisted companies whose PRICES we cannot get — so unlike the return
+analysis, this is **not survivorship-limited**.
+
+Measured as AUC: the probability a survivor ranks above a non-survivor. 0.5 is
+no signal.
+
+### Raw metrics (base 2022q4, 8 quarters ahead, 6,452 companies, 79% survived)
+
+| metric | AUC | median SURVIVOR | median GONE |
+|---|---|---|---|
+| **equity / assets** | **0.712** | 0.37 | **−0.03** |
+| revenue (size) | 0.679 | $600M | $79M |
+| assets (size) | 0.679 | $747M | $179M |
+| current ratio | 0.669 | 1.81 | 0.80 |
+| net margin | 0.660 | 1.7% | −34.0% |
+| FCF margin | 0.642 | 1.1% | −14.5% |
+| interest coverage | 0.633 | 1.15 | −3.90 |
+| cash runway (quarters) | 0.613 | 3.75 | 2.30 |
+| ROA | 0.562 | 0.5% | −0.8% |
+| profitable (yes/no) | 0.536 | | |
+| asset turnover | 0.526 | | |
+| **debt / assets** | **0.517** | 0.22 | 0.18 |
+
+Stable across base quarters (2021q4 and 2023q2 reproduce the ordering).
+
+### Four things this says
+
+**Negative equity is the signature of a company about to disappear.** The
+median company that vanished had equity of **−3% of assets**. `equity/assets`
+is the strongest single raw predictor and the rubric does not score it at all —
+there is a `negative_equity` flag that affects nothing.
+
+**Leverage is not the killer; insolvency is.** `debt/assets` scores 0.517 —
+essentially no signal — while the rubric spends 3 points on debt/equity. Debt
+is survivable. Negative book equity is not.
+
+**Size matters enormously and is barely used.** Survivors are 7-10x larger by
+revenue and assets. The rubric uses size only as a `micro_cap` flag and inside
+liquidity.
+
+**Being profitable barely predicts survival (0.536), but HOW profitable does
+(0.660).** A company at −34% net margin is dying; one at breakeven is not
+meaningfully safer than one at +2%. The binary throws away what matters.
+
+### The existing rubric, tested on the same outcome
+
+| | AUC | median SURVIVOR | median GONE |
+|---|---|---|---|
+| **health pillar** | **0.818** | 11.7 | 0.0 |
+| momentum pillar | 0.769 | 9.2 | 2.0 |
+| **total score** | **0.765** | 47.2 | 23.6 |
+| confidence | 0.724 | 0.6 | 0.5 |
+| profitability | 0.674 | 7.5 | 1.4 |
+| quality | 0.668 | 9.5 | 2.8 |
+| **growth** | **0.544** | 13.1 | 10.0 |
+
+The score works — 0.765, and the **health pillar at 0.818 beats every raw
+metric tested**, which vindicates adding it.
+
+And **growth fails for the second time**. It showed no relationship with
+forward return (−0.014 / +0.003 / +0.042 across windows) and now shows almost
+none with survival. Twenty of the hundred points are, on two independent tests,
+doing nothing.
+
+`confidence` scoring 0.724 is worth noting too: how much data a company files
+is itself a survival signal. Thin filers disappear.
