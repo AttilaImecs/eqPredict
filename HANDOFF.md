@@ -778,3 +778,83 @@ Three windows scored, 1,872 companies common to all three:
 
 Median absolute score change across the ~18 months is **7.5 points** (p90 20.9)
 — stable enough to be meaningful, responsive enough to be useful.
+
+---
+
+## 12. The share-basis fix — `shares_reconcile.py`
+
+**The upstream cause of the P/E defect in section 11.** Three inputs sat on
+three different share bases and the arithmetic combining them was wrong:
+
+| input | basis |
+|---|---|
+| Yahoo `close` | split-adjusted to today |
+| SEC `eps_diluted` | **as filed, never restated backwards** |
+| SEC `shares_outstanding` | current dei tag, when it is right |
+
+`fetch_prices.py` computed `pe = close / eps_trailing` (mixing the first two)
+and `market_cap = close x shares` (trusting the third).
+
+### The fix
+
+The most recent quarters' as-filed EPS is already on today's basis, so
+`net_income / eps_diluted` yields a current-basis share count derived
+**independently of the dei tag** — and the two cross-check each other. TTM EPS
+is then `TTM net income / shares` rather than a sum of four as-filed EPS
+figures, because summing across a split boundary adds two different bases.
+
+Everything is consistent by construction:
+`market_cap = price x shares`, `eps = ni_ttm / shares`, `pe = market_cap / ni_ttm`.
+
+| | before | after |
+|---|---|---|
+| `eps x shares` disagreeing with net income by >50% | **474 of 2,163 (21.9%)** | **0 of 2,815 (0.0%)** |
+| Booking | P/E 1.16, $6bn | **P/E 20.1, $145bn** |
+| Mastercard | 122.5M shares, $70bn | **907M shares, $518bn** |
+| GOOGL / META / NVDA | no market cap at all | **$4,664bn / $1,523bn / $5,152bn** |
+| rows with no valuation pillar | 18% | **1%** |
+| `pe_unreliable` flags | 49 | **0** |
+
+`shares_source` records `dei` (corroborated, 2,511), `implied_override` (dei
+rejected, 562), `implied` (no dei tag, 238).
+
+### Two wrong turns worth remembering
+
+1. **A magnitude floor cannot identify a bad EPS.** The first attempt screened
+   out "small" EPS as unreliable. Booking carries *two* bases at once — 0.40 /
+   1.36 / 2.53 (true, ~775M shares: 333M/775M = $0.43) alongside 74.34 / 84.41
+   (corrupt, ~34M) — so the filter kept precisely the corrupt values and
+   returned a $6bn market cap for a $145bn company. `current_shares()` now
+   **clusters** the estimates and takes the largest group, assuming nothing
+   about scale.
+2. **A median across two bases returns their midpoint** — a share count no
+   quarter ever reported. Hence clustering rather than a robust average.
+
+`fetch_prices.py --recompute` rebuilds the derived columns from the CSVs
+already on disk. The prices were never wrong, only the share basis, so
+repairing the arithmetic needs no second Yahoo run. `yfinance` is imported
+lazily so `--recompute` works without it.
+
+## 13. `test_scoring.py`
+
+`python3 test_scoring.py` — 31 tests, pure stdlib, no fixtures on disk.
+
+**Every test is a bug that shipped.** This code failed six times during
+development and never once raised: each failure was a plausible score computed
+from a corrupt input. A crash would have been easier. The assertions carry the
+real values (Booking's two bases, Nvidia's 10:1, Mastercard's dei tag) so a
+regression breaks a test rather than a workbook.
+
+The suite was **mutation-tested**: ten deliberate reversions of the fixes above
+(disable split detection, always trust the dei tag, score missing data as zero,
+stop inverting multiples, allow partial TTM windows, …) and **all ten are
+caught**. Two gaps found that way and closed:
+
+* the clustering test passed against a plain median, because the fixture never
+  produced a midpoint — now it does;
+* `TestRules` never exercised `score_one`, so "score missing data as zero"
+  survived — now covered by a test asserting two companies identical on
+  scorable rules come out equal when one lacks the rest.
+
+When adding a rule, add the case that would have caught its absence, and re-run
+the mutation check rather than trusting a green suite.
