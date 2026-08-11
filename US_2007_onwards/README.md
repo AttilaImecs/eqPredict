@@ -265,3 +265,64 @@ at 2020 or any other start date. The remaining routes:
    disappearances here are acquisitions rather than failures.
 
 Option 2 is honest and cheap. Option 1 is correct. Option 3 should not be used.
+
+---
+
+## Point-in-time universes — `build_universe_pit.py`
+
+**The flaw it fixes:** every score window used one `universe.csv` — today's
+listings. A score computed "as at 2024-12" was evaluated against the companies
+that exist *now*, so anything delisted in between was absent from **every**
+window. Survivorship was baked in at the universe level, before any scoring
+rule ran.
+
+These are built from who actually filed each quarter, per SEC's DERA data sets.
+`sub.txt` also carries `sic` and `afs`, so industry and filer size come along
+and are themselves point-in-time.
+
+Only ~3 MB is downloaded per quarter: `sub.txt` is the first entry in each
+89 MB ZIP, so a ranged GET plus a raw inflate gets it without touching
+`num.txt` (397 MB of numeric data not needed here).
+
+### 21 quarters, 2021 Q1 – 2026 Q1
+
+| quarter | filers | priceable | coverage |
+|---|---|---|---|
+| 2021q1 | 5,648 | 3,701 | **66%** |
+| 2021q4 | 6,455 | 4,048 | 63% |
+| 2022q4 | 6,452 | 4,279 | 66% |
+| 2023q4 | 5,985 | 4,417 | 74% |
+| 2024q4 | 5,643 | 4,603 | 82% |
+| 2025q4 | 5,565 | 4,919 | 88% |
+| 2026q1 | 5,605 | 5,089 | **91%** |
+
+126,563 filer-quarters, 74% priceable overall. 2026 Q2 is not published yet.
+
+### The gradient is the finding, not the average
+
+**Coverage climbs monotonically from 66% to 91%** — because the further back a
+window sits, the more of its companies have since vanished. So a survivors-only
+backtest is **most biased exactly where it has the most forward data**:
+
+* a 2021 Q1 window has 20 quarters of forward returns and is blind to ~34% of
+  its own universe;
+* a 2026 Q1 window sees 91% of its universe and has almost no forward data.
+
+Any result computed across these windows mixes those two regimes. Comparing an
+early window against a late one is comparing different degrees of blindness,
+not different market conditions.
+
+### Decomposing the gap (2021 Q1)
+
+Of 1,947 filers with no current ticker:
+
+| | |
+|---|---|
+| still filing in 2026 Q1 — alive, just not exchange-listed | 224 |
+| absent by 2026 Q1 — genuinely stopped filing | **1,723** |
+
+So the true delisting blind spot for 2021 Q1 is **31%**, not the headline 34%.
+And it is not size-neutral: 1,103 of the disappearances are non-accelerated
+(small) filers against 335 large accelerated. Small companies vanish far more
+often — which is precisely the population a loser-avoidance screen is supposed
+to be catching.
