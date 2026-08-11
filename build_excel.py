@@ -133,7 +133,11 @@ def style(ws, df, freeze="A2"):
     for i, col in enumerate(df.columns, start=1):
         letter = get_column_letter(i)
         width = max(len(str(col)) + 3, 11)
-        if df[col].dtype == object:
+        # `dtype == object` was the old test and it silently stopped matching
+        # under pandas 3, where string columns carry a dedicated `str` dtype.
+        # The effect was invisible -- no error, every text column just fell
+        # back to the default width -- which is exactly why it needs a test.
+        if pd.api.types.is_object_dtype(df[col]) or pd.api.types.is_string_dtype(df[col]):
             sample = df[col].astype(str).head(300)
             longest = sample.str.len().max()
             # `or 10` does NOT guard this: max() returns NaN for an all-empty

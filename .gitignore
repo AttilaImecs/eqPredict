@@ -18,3 +18,6 @@ Canada/_done_ca.txt
 
 # Local virtualenv (pandas/requests for the fetchers)
 .venv/
+
+# Fetcher coverage snapshot (regeneratedeach run)
+*.csv.tickers

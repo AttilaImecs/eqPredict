@@ -947,3 +947,56 @@ and `max()` returns NaN for an all-empty column. NaN is **truthy**, so the `or 1
 fallback never fired and `int(NaN)` raised. Only `pd.isna` tests this correctly.
 Also `append()` now uses `reindex` rather than `[columns]`, which raised
 KeyError on a batch containing only annual-only rows.
+
+---
+
+## 15. Making silent failures loud
+
+Two things in section 14 were flagged but not actually fixed. Both are now.
+
+### 1. A failed ticker was checkpointed as done
+
+`DONE_FILE` was written in the `except` branch as well as on success, so **any
+transient error became permanent**: the ticker was marked complete and every
+subsequent resume skipped it. That is how one run lost 293 tickers — almost
+exactly the foreign private issuers — while reporting a healthy `ok=3119`.
+They retried clean the moment they were asked again.
+
+Three changes:
+
+* **Checkpoint only on success.** A failure stays un-done so a re-run reaches it.
+* **An automatic retry pass.** Failures are collected and retried once, serially,
+  after a `RETRY_PAUSE` — enough to let a 429 clear. `--no-retry` disables it.
+* **Failures always print.** They used to be swallowed by the every-25th-ticker
+  progress throttle, which is how 331 of them went unseen in a live run.
+
+### 2. A shrinking rebuild looked identical to a good one
+
+The log's `ok=` count is the same whether or not the run quietly dropped a
+tenth of the universe. The only thing that caught it was diffing the ticker set
+by hand, which is not a control.
+
+`coverage_check()` now runs at the end of every fetch: it keeps a
+`data_quarterly.csv.tickers` snapshot beside the output, diffs against it, and
+**exits non-zero** when losses exceed 2% so a scripted pipeline stops instead of
+building a workbook on thin data. On a regression the snapshot is deliberately
+**not** updated — otherwise the next run would compare against the degraded set
+and see nothing wrong. Small losses are tolerated, because listings genuinely
+come and go.
+
+### `test_pipeline.py` — 11 tests, pandas-dependent
+
+Kept separate from `test_scoring.py`, which stays stdlib-only so it runs
+anywhere. Run with `./.venv/bin/python test_pipeline.py`. Mutation-tested:
+five reversions (restore the NaN-truthy width bug, restore the pandas-2-only
+dtype test, restore the append KeyError, always overwrite the snapshot,
+checkpoint failures as done) and **all five are caught**.
+
+### A third bug the tests found on their way in
+
+Writing the width test surfaced a live regression: `style()` selected text
+columns with `df[col].dtype == object`, and **pandas 3 gives string columns a
+dedicated `str` dtype**. The check silently stopped matching, so every text
+column in both workbooks quietly fell back to the default width. No error, no
+symptom beyond a slightly worse-looking sheet — the kind of thing only a test
+finds. Now uses `is_object_dtype or is_string_dtype`.

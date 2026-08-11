@@ -64,6 +64,7 @@ DONE_FILE = "_sec_done.txt"
 SHARES_FILE = "data_shares.csv"
 
 REQ_PER_SEC = float(os.environ.get("SEC_REQ_PER_SEC", 6.0))
+RETRY_PAUSE = 30           # seconds before the retry pass, to let a 429 clear
 # SEC's hard cap is 10/s. 6 rather than 8 because a sustained 429 block
 # takes ~10 minutes to clear and costs far more than the throughput saved.
 # NEVER run two SEC fetchers at once: 8+8 exceeds the cap and blocks both
@@ -1190,6 +1191,8 @@ def main():
     ap.add_argument("--universe", default="universe.csv")
     ap.add_argument("--out", default=Q_FILE)
     ap.add_argument("--tickers", default="", help="comma-separated ticker subset")
+    ap.add_argument("--no-retry", action="store_true",
+                    help="skip the automatic retry pass over failed tickers")
     args = ap.parse_args()
 
     if args.restart:
@@ -1233,41 +1236,82 @@ def main():
         print("[sec] nothing to do")
         return
 
+    def run_pass(batch, t0, total, label=""):
+        """Fetch one batch. Returns the tickers that FAILED.
+
+        A failure is NOT checkpointed. Writing DONE_FILE in the except branch
+        made every transient error permanent: the ticker was marked done, so
+        resuming skipped it forever. A single run once lost 293 tickers that
+        way -- almost exactly the foreign private issuers -- and they retried
+        clean the moment they were asked again.
+        """
+        failed = []
+        with ThreadPoolExecutor(max_workers=args.workers) as ex:
+            futures = {ex.submit(fetch_one, r, cutoff): r["ticker"] for r in batch}
+            for fut in as_completed(futures):
+                tk = futures[fut]
+                with _lock:
+                    _counter["n"] += 1
+                    n = _counter["n"]
+                    ok = True
+                    try:
+                        rows = fut.result()
+                        append(args.out, rows, COLUMNS)
+                        if rows:
+                            _counter["ok"] += 1
+                            nq4 = sum(1 for r in rows if r["q4_derived"])
+                            status = f"ok  {len(rows):>2}q ({nq4} derived)"
+                        else:
+                            _counter["empty"] += 1
+                            status = "empty (no XBRL)"
+                    except Exception as e:                 # noqa: BLE001
+                        ok = False
+                        failed.append(tk)
+                        status = f"FAIL {str(e)[:45]}"
+
+                    # Checkpoint ONLY on success, so a retry can reach it.
+                    if ok:
+                        with open(DONE_FILE, "a") as fh:
+                            fh.write(tk + "\n")
+
+                    flush_shares()
+                    # Failures always print. They used to be swallowed by the
+                    # every-25th throttle, which is how 331 of them went unseen.
+                    if not ok or n % 25 == 0 or n == total or total <= 30:
+                        rate = n / max(time.time() - t0, 1)
+                        eta = (total - n) / max(rate, 0.001) / 60
+                        print(f"[{n:>5}/{total}]{label} {tk:<6} {status:<40} "
+                              f"| {rate:.1f}/s ETA {eta:.0f}m")
+        return failed
+
     t0 = time.time()
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futures = {ex.submit(fetch_one, r, cutoff): r["ticker"] for r in todo}
-        for fut in as_completed(futures):
-            tk = futures[fut]
-            with _lock:
-                _counter["n"] += 1
-                n = _counter["n"]
-                try:
-                    rows = fut.result()
-                    append(args.out, rows, COLUMNS)
-                    if rows:
-                        _counter["ok"] += 1
-                        nq4 = sum(1 for r in rows if r["q4_derived"])
-                        status = f"ok  {len(rows):>2}q ({nq4} derived)"
-                    else:
-                        _counter["empty"] += 1
-                        status = "empty (no XBRL)"
-                except Exception as e:                     # noqa: BLE001
-                    _counter["fail"] += 1
-                    status = f"FAIL {str(e)[:45]}"
-                with open(DONE_FILE, "a") as fh:
-                    fh.write(tk + "\n")
+    failed = run_pass(todo, t0, total)
 
-                flush_shares()
-                if n % 25 == 0 or n == total or total <= 30:
-                    rate = n / max(time.time() - t0, 1)
-                    eta = (total - n) / max(rate, 0.001) / 60
-                    print(f"[{n:>5}/{total}] {tk:<6} {status:<40} | {rate:.1f}/s ETA {eta:.0f}m")
+    # Transient errors dominate: SEC throttles under load and each worker's own
+    # backoff hides it. Retrying once, serially and slowly, recovers nearly all
+    # of them without another full run.
+    if failed and not args.no_retry:
+        print(f"\n[sec] retrying {len(failed)} failed tickers "
+              f"(serial, {RETRY_PAUSE}s pause) ...")
+        time.sleep(RETRY_PAUSE)
+        by_ticker = {r["ticker"]: r for r in todo}
+        retry_batch = [by_ticker[t] for t in failed if t in by_ticker]
+        _counter["fail"] = 0
+        saved_workers, args.workers = args.workers, 1
+        total = _counter["n"] + len(retry_batch)
+        failed = run_pass(retry_batch, t0, total, label=" retry")
+        args.workers = saved_workers
 
+    _counter["fail"] = len(failed)
     print(
         f"\n[sec] DONE  ok={_counter['ok']}  empty={_counter['empty']}  "
         f"failed={_counter['fail']}  elapsed {(time.time() - t0) / 60:.1f}m"
     )
     print(f"[sec] wrote {args.out}")
+    if failed:
+        print(f"[sec] STILL FAILING after retry ({len(failed)}): "
+              f"{', '.join(failed[:20])}{' ...' if len(failed) > 20 else ''}")
+        print("[sec] these are NOT checkpointed -- re-run to pick them up")
 
     flush_shares(force=True)
     if os.path.exists(SHARES_FILE):
@@ -1295,6 +1339,57 @@ def main():
                 print(f"[sec]     {r.ticker:<6} {r.quarters:>2}q  cik {r.cik}  {str(r.company)[:38]}")
     except Exception as e:                                     # noqa: BLE001
         print(f"[sec] (short-history report skipped: {e})")
+
+    coverage_check(args.out, args.universe)
+
+
+def coverage_check(out_path, universe_path, tolerance=0.02):
+    """Compare the ticker set just written against the previous run.
+
+    A rebuild that silently drops companies is the failure mode this pipeline
+    is most exposed to, because the log's `ok=` count looks healthy either way.
+    One run reported ok=3119 and had quietly lost 293 tickers -- almost exactly
+    the foreign private issuers -- and nothing surfaced it. It was caught by
+    diffing the ticker set by hand, which is not a control.
+
+    So the diff runs automatically: the previous ticker set is kept beside the
+    output and compared on every run. Exits NON-ZERO on a regression, so a
+    scripted pipeline stops instead of building a workbook from thin data.
+    """
+    snap = out_path + ".tickers"
+    try:
+        now = set(pd.read_csv(out_path, usecols=["ticker"])["ticker"])
+    except Exception as e:                                     # noqa: BLE001
+        print(f"[sec] (coverage check skipped: {e})")
+        return
+
+    uni = pd.read_csv(universe_path, dtype={"cik": str})
+    with_cik = {t for t, c in zip(uni["ticker"], uni["cik"])
+                if pd.notna(c) and str(c).strip()}
+    print(f"[sec] coverage: {len(now)} tickers written, "
+          f"{len(with_cik)} in universe with a CIK "
+          f"({100 * len(now) / max(len(with_cik), 1):.0f}%)")
+
+    regressed = False
+    if os.path.exists(snap):
+        prev = {l.strip() for l in open(snap) if l.strip()}
+        lost = sorted(prev - now)
+        gained = sorted(now - prev)
+        print(f"[sec] vs previous run: -{len(lost)} +{len(gained)}")
+        if lost and len(lost) > tolerance * max(len(prev), 1):
+            regressed = True
+            print(f"[sec] *** REGRESSION: {len(lost)} tickers present last run "
+                  f"and missing now ***")
+            print(f"[sec]     {', '.join(lost[:25])}"
+                  f"{' ...' if len(lost) > 25 else ''}")
+            print("[sec]     Almost always transient SEC failures. Re-run to "
+                  "recover them; the snapshot below is NOT updated.")
+
+    if not regressed:
+        with open(snap, "w") as fh:
+            fh.write("\n".join(sorted(now)))
+    else:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
