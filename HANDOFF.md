@@ -626,3 +626,155 @@ structurally trade on low P/Es.
 **The real fix is an SIC code per filer**, which SEC assigns to everyone and
 `build_universe.py` could pull in one pass. Until then, read the absolute score
 as "rank this whole list" and the sector rank as "rank this against peers".
+
+---
+
+## 11. Industry classification, free cash flow, peer-relative scoring
+
+### `fetch_sic.py` — a sector for the WHOLE universe
+
+`universe.csv` only carries a sector for the ~500 S&P names from the Wikipedia
+scrape. SEC assigns every filer an SIC code and serves it from the
+`submissions` API, so this fetches one per CIK into **`data_sic.csv`**.
+
+The SIC-to-sector table is ordered **specific-first and first match wins**,
+which is load-bearing: 2833-2836 (biologics) must be tested before 2800-2899
+(chemicals) or every biotech lands in Materials, and 6798 (REITs) before
+6700-6799 (holding offices) or every REIT lands in Financials.
+
+**The sector is re-derived at SCORING time from the raw `sic` code**, not read
+from the `sector_sic` column this script writes. The code is the durable fact;
+the mapping is a judgement call that will keep being tuned. Deriving late means
+a mapping fix is free, where trusting the stored column would mean re-fetching
+3,717 filings every time a range moved. Tuning the ranges against the first
+2,478 rows cut unclassified from 4.8% to 2.2%.
+
+SIC and GICS agree on **78%** of the names where both exist. They are different
+taxonomies and full agreement is not the goal — a usable peer group is. Note
+SIC 6770 is "Blank Checks", i.e. SPACs, which are not operating companies.
+
+### Free cash flow — `ocf`, `capex`, `fcf`, `fcf_margin_pct`
+
+`fcf = ocf - capex`, emitted **only when both legs are present**. An untagged
+capex is not zero, and treating it as zero would publish operating cash flow as
+free cash flow — exactly wrong for the capital-intensive filers where the
+distinction matters most.
+
+**These are cash-flow-statement items, so XBRL tags them YEAR-TO-DATE.** They
+go through the same `ytd_to_quarterly()` path as `dep_amort` (see
+`CASHFLOW_YTD`). A bare ~90-day filter would find only Q1 and silently drop
+three quarters in four, putting one quarter of cash flow against a full year of
+revenue. `capex` uses `merge="max"` because its candidate tags overlap as
+total-vs-component rather than as alternatives.
+
+Validated against known figures: Apple's capex lands at ~$2-3B a quarter
+(~$11B/yr), and Microsoft's jump to $30B+ a quarter matches its AI datacenter
+build. Coverage on the smoke sample was OCF 99%, capex 87%.
+
+### Two bugs this surfaced
+
+1. **`fetch_sec_fundamentals.py` still had the bad User-Agent.** It carried
+   `StockPipelineDataCollector/1.0` — the exact string section 3 records as
+   403-rejected. The 2026-08-06 rebuild fixed `build_universe.py` and missed
+   this file, leaving the main fundamentals fetcher one SEC policy tightening
+   away from silently returning nothing. Now aligned with the rest.
+
+2. **Never run two SEC fetchers at once.** `fetch_sic.py` and
+   `fetch_sec_fundamentals.py` both rate-limit themselves to 8 req/s, which is
+   under SEC's 10/s cap individually and **16/s together**. Running them
+   concurrently earned a sustained `HTTP 429` and both stalled with empty logs
+   for minutes — the failure is silent, because each script's backoff hides it.
+   Run them **sequentially**. Both are resumable, so a kill costs nothing.
+
+### Peer-relative profitability
+
+Profitability margins are now scored as a **percentile within sector** rather
+than against absolute bands, which is what produced the Financials tilt in
+section 10: a grocer at its industry median scored mid-band while a bank at its
+industry median maxed the rule.
+
+13 of the 20 points are peer-relative; **7 stay absolute on purpose**. In a
+sector where everybody loses money the least-bad loss-maker still ranks in the
+90th percentile, and "does this company actually earn anything" is a question
+no percentile can answer.
+
+A sector needs `MIN_PEERS` (20) members before its own distribution is trusted;
+below that the company is ranked against the whole universe. Ranking against
+four peers yields percentiles of 0/25/50/75/100 and nothing between — noise
+dressed as precision.
+
+**Valuation is still absolute**, and its measured sector spread (8.8 points)
+was LARGER than profitability's (5.5). Banks structurally trade on low P/Es.
+Making V1/V2 peer-relative is the obvious next step.
+
+### Measured effect of the peer-relative change
+
+Like-for-like on the 480 GICS-labelled names (the same basis the 12.0 baseline
+was measured on — the SIC rollout changed the sample, so the universe-wide
+number is not comparable):
+
+| | absolute bands | peer-relative |
+|---|---|---|
+| Financials lift in top 200 | 3.04x | **1.48x** |
+| Spread between sector medians | 12.0 pts | **9.2 pts** |
+
+Health Care's low median across the **full** universe (48.1 vs Financials 67.0)
+is not residual bias: **29% of Health Care names carry `chronic_losses` against
+2% of Financials.** That is unprofitable micro-cap biotech being scored
+correctly, not a rubric failure.
+
+### A third data defect: P/E was wrong for 381 tickers
+
+Neither upstream P/E source can be trusted alone:
+
+* **`pe_trailing` = price / eps_trailing.** Yahoo's prices are split-adjusted;
+  SEC's as-filed EPS is not. Booking reads **1.16** where the truth is ~20.7.
+* **market cap / TTM net income** needs no EPS, so splits cannot touch it — but
+  `shares_outstanding` is **missing for ~1,000 tickers** (GOOGL, META, NVDA
+  among them) and wrong for others: Mastercard is tagged 122.5M shares against
+  an actual ~910M, implying a $70bn company rather than ~$520bn.
+
+The scorer now computes **both and uses them only where they agree** within
+`PE_TOLERANCE`. Disagreement means one is broken and we cannot tell which, so
+the P/E rules are dropped and the row is flagged `pe_unreliable` (49 tickers)
+rather than scored on a figure that may be 20x out. Where market cap is missing
+but the reported P/E is usable, market cap is backed out as `pe x earnings`,
+which recovers the mega-caps. Missing-valuation rows fell from 18% to 10%.
+
+**The real fix is upstream in `fetch_prices.py`** — reconcile
+`shares_outstanding` against the implied diluted count, or take Yahoo's own
+market cap.
+
+### Tunable configuration — `--config`
+
+Every threshold, pillar weight, cap and band lives in `DEFAULTS` and nowhere
+else. `--config my.json` deep-merges over it, so a file containing only
+`{"pillar_weights": {"valuation": 30}}` changes just that; `--dump-config`
+prints what is active. Weights need not sum to 100 — the total is renormalised.
+
+This matters as macro conditions move. A P/E of 20 is expensive at 8% policy
+rates and ordinary at 2%. Two defences: the peer-relative rules re-baseline
+themselves every run (a market-wide de-rating shifts everyone's multiple and
+nobody's score), and everything still absolute is editable in one place.
+
+### `--as-of YYYY-MM` — scoring a past date
+
+Discards every quarter and price after the given month. Valuation then comes
+from `data_monthly.csv` rather than `data_snapshot.csv`, which is a CURRENT
+snapshot and would leak the future into a historical score.
+
+**Caveat:** `market_cap_est` is monthly close x *current* shares outstanding
+(section 8), so historical market caps are distorted by any buyback or issuance
+since, and P/S inherits that. `pe_trailing_est` is genuinely historical.
+`valuation_basis` records which basis a row used.
+
+Three windows scored, 1,872 companies common to all three:
+
+| as-of | rated | median score | 3y growth basis |
+|---|---|---|---|
+| 2024-12 | 1,942 | 54.0 | 98% |
+| 2025-12 | 2,018 | 55.2 | 98% |
+| 2026-06 | 2,012 | 57.0 | 98% |
+
+Median absolute score change across the ~18 months is **7.5 points** (p90 20.9)
+— stable enough to be meaningful, responsive enough to be useful.

@@ -14,3 +14,6 @@ Canada/_done_ca.txt
 
 # Local scratch
 *.tmp
+
+# Local virtualenv (pandas/requests for the fetchers)
+.venv/

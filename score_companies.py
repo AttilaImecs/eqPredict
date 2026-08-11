@@ -20,9 +20,10 @@ WHAT THIS IS NOT
       so leverage, interest coverage, liquidity and ROE/ROIC are invisible. A
       company can score 85 here and still be one covenant from insolvency.
       This is the single most important caveat in the file.
-    * NO CASH FLOW. No FCF, no capex, no cash conversion. Earnings quality in
-      the accrual sense cannot be tested, so a company converting none of its
-      net income to cash looks identical to one converting all of it.
+    * CASH FLOW IS PARTIAL. ocf/capex/fcf now come from the cash-flow
+      statement, so accrual quality IS tested (rule Q5, cash conversion).
+      What is still missing is the financing and investing detail: buybacks
+      funded by debt, acquisitions, and dividends are all invisible.
 
   Treat the score as "rank this list for me", never as "buy this".
 
@@ -50,36 +51,64 @@ SCALE -- why 0-100 and not 1-50
   `confidence` reports how much of the rubric actually ran; read any score with
   a confidence below ~0.6 as provisional.
 
-KNOWN BIAS -- THE SCORE TILTS TOWARDS FINANCIALS
-  Measured on this universe, median score by sector runs from 72.8
-  (Financials) down to 60.8 (Consumer Staples), and Financials are 3.0x
-  over-represented in the top 200 while Energy and Materials are absent
-  entirely. This is mechanical, not a finding:
+PEER-RELATIVE PROFITABILITY
+  Margin rules are scored as a PERCENTILE WITHIN SECTOR, not against absolute
+  bands. Absolute bands were the main driver of a measured tilt: median net
+  margin is 21.2% in Financials against 6.6% in Consumer Staples, so a grocer
+  performing exactly at its industry median scored mid-band while a bank at
+  its industry median maxed the rule. Financials came out 3.0x
+  over-represented in the top 200 with Energy and Materials absent entirely.
 
-    * margin bands are absolute, and median net margin is 21.2% in Financials
-      against 6.6% in Consumer Staples -- a grocer at its sector median scores
-      mid-band while a bank at its sector median maxes the rule;
-    * P/E bands are absolute, and banks structurally trade cheap.
+  13 of profitability's 20 points are peer-relative; 7 stay absolute on
+  purpose. In a sector where everybody loses money the least-bad loss-maker
+  still ranks in the 90th percentile, and "does this company actually earn
+  anything" is a question no percentile can answer.
 
-  Fixing it properly needs an industry classification for the whole universe.
-  `sector` is populated for only the ~500 S&P 500 names scraped from
-  Wikipedia, so `sector_rank_pct` -- percentile within sector -- is emitted
-  for those and blank elsewhere. Compare within a sector where you can; the
-  absolute score is for ranking the whole list. SEC assigns every filer an SIC
-  code, so pulling it in build_universe.py would close this for good.
+  Peer groups come from `sector`: the Wikipedia GICS value where it exists
+  (~500 S&P names) and otherwise the SIC-derived sector from data_sic.csv,
+  which fetch_sic.py pulls from SEC for the whole universe. A sector needs
+  MIN_PEERS members before its own distribution is trusted; below that the
+  company is ranked against the universe. Run fetch_sic.py first -- without
+  data_sic.csv only the S&P names have peers and everything else falls back.
+
+  VALUATION IS PEER-RELATIVE TOO. P/E and P/S are percentile-ranked within
+  sector for the same reason, plus one specific to them: absolute P/E bands
+  rot as rates move, while a percentile re-baselines itself every run.
+
+  MEASURED EFFECT, like-for-like on the 480 GICS-labelled names:
+  Financials' over-representation in the top 200 fell from 3.04x to 1.48x,
+  and the spread between the highest and lowest sector median fell from 12.0
+  to 9.2 points. Health Care's low median across the FULL universe (48.1) is
+  not bias -- 29% of those names are flagged chronic_losses against 2% of
+  Financials, i.e. unprofitable micro-cap biotech scoring correctly.
+
+TIME TRAVEL
+  `--as-of YYYY-MM` scores each company as it looked that month, discarding
+  every later quarter and price. Valuation then comes from data_monthly.csv
+  instead of the current snapshot, which would otherwise leak the future into
+  a historical score; `valuation_basis` records which was used.
 
 Usage:
   python3 score_companies.py                    # score everything
+  python3 score_companies.py --as-of 2024-12    # score as at Dec 2024
+  python3 score_companies.py --config tuning.json --dump-config
   python3 score_companies.py --top 25           # print a leaderboard
   python3 score_companies.py --min-confidence 0.7
   python3 score_companies.py --sp500-only
 """
 
 import argparse
+import bisect
 import collections
 import csv
+import json
+import os
 import statistics
 import sys
+
+# Only for sector_for(): fetch_sic is stdlib-only (urllib), so importing it
+# here does not drag a dependency into the scorer.
+from fetch_sic import sector_for
 
 csv.field_size_limit(10**7)
 
@@ -87,6 +116,7 @@ Q_FILE = "data_quarterly.csv"
 M_FILE = "data_monthly.csv"
 S_FILE = "data_snapshot.csv"
 U_FILE = "universe.csv"
+SIC_FILE = "data_sic.csv"
 OUT = "company_scores.csv"
 
 # 16 quarters gives a true 3-year TTM-vs-TTM comparison; 12 is the fallback.
@@ -96,8 +126,111 @@ FULL_WINDOW = 16
 FALLBACK_WINDOW = 12
 MIN_QUARTERS = 8
 
+# How far the two independent P/E estimates may differ before both are
+# distrusted. 50% is deliberately loose: it catches the 20x split errors this
+# is aimed at without discarding ordinary timing noise between a month-end
+# price snapshot and a TTM earnings window.
+PE_TOLERANCE = 0.5
+
 PILLARS = ["growth", "profitability", "quality", "valuation", "momentum"]
-PILLAR_MAX = 20.0
+
+# --------------------------------------------------------------------------
+# TUNABLE CONFIGURATION
+#
+# Everything a judgement call depends on lives here and nowhere else, so the
+# rubric can be re-tuned without touching the scoring code. Override any subset
+# with `--config my.json`; the file is deep-merged over these defaults, so a
+# file containing only {"pillar_weights": {"valuation": 30}} changes just that.
+# `--dump-config` prints the active values.
+#
+# WHY THIS MATTERS AS MACRO CONDITIONS MOVE
+#   Absolute thresholds rot. A P/E of 20 is expensive at 8% policy rates and
+#   ordinary at 2%; "revenue growth above 15%" means different things either
+#   side of an inflation shock. Two defences are built in:
+#
+#   1. The peer-relative rules (margins, and now P/E and P/S) are scored as
+#      PERCENTILES, which re-baseline themselves every run. If the whole
+#      market de-rates, the cheap half of every sector is still the cheap
+#      half -- no retuning needed, and this is why valuation moved to
+#      percentiles rather than getting new fixed numbers.
+#   2. Everything still absolute is in `bands` below, editable in one place.
+#      Absolute rules are kept deliberately (see rules_profitability) because
+#      a percentile cannot tell you whether a company earns anything at all.
+#
+#   `pillar_weights` need not sum to 100 -- the total is renormalised -- so
+#   weighting valuation higher in an expensive market is a one-line change.
+# --------------------------------------------------------------------------
+DEFAULTS = {
+    "pillar_weights": {
+        "growth": 20.0,
+        "profitability": 20.0,
+        "quality": 20.0,
+        "valuation": 20.0,
+        "momentum": 20.0,
+    },
+    # A sector needs this many members before its own distribution is trusted;
+    # below it the company is ranked against the whole universe. Ranking
+    # against 4 peers yields percentiles of 0/25/50/75/100 and nothing between.
+    "min_peers": 20,
+    # Percentile -> fraction of the rule's points. 50 is the sector median by
+    # construction, so a typical company scores mid-band.
+    "peer_bands": [[90, 1.00], [75, 0.80], [60, 0.65], [50, 0.50],
+                   [35, 0.35], [20, 0.20]],
+    # Absolute bands. Higher-is-better rules list [min_value, points]
+    # descending; lower-is-better rules list [max_value, points] ascending.
+    # The percentile each threshold sits at in this universe is in the comment
+    # beside the rule -- they were calibrated, not invented.
+    "bands": {
+        "G1_revenue_cagr":      [[25, 8], [15, 6.5], [8, 5], [3, 3.5], [0, 2], [-5, 1]],
+        "G2_revenue_yoy":       [[20, 5], [10, 4], [5, 3], [0, 2], [-10, 1]],
+        "G3_eps_cagr":          [[20, 4], [10, 3], [0, 2], [-15, 1]],
+        "G4_acceleration":      [[5, 3], [0, 2], [-5, 1]],
+        "P4_net_margin_absolute": [[15, 4], [8, 3], [3, 2], [0, 1]],
+        "P5_profitable_quarters": [[12, 3], [10, 2.25], [7, 1.5], [4, 0.75]],
+        "Q1_margin_trend":      [[5, 5], [2, 4], [0, 3], [-2, 1.5], [-5, 0.75]],
+        "Q2_growth_stability":  [[5, 4], [10, 3.2], [20, 2.4], [35, 1.6], [60, 0.8]],
+        "Q3_share_count":       [[-3, 4], [0, 3.2], [2, 2.4], [10, 1.6], [25, 0.8]],
+        "Q5_cash_conversion":   [[90, 4], [70, 3.2], [50, 2.4], [30, 1.4], [10, 0.6]],
+        "V3_peg":               [[1, 3], [1.5, 2.25], [2.5, 1.5], [4, 0.75]],
+        "V4_pe_vs_history":     [[0.7, 2], [0.9, 1.5], [1.1, 1], [1.4, 0.5]],
+        "V5_price_to_fcf":      [[12, 4], [18, 3.2], [28, 2.2], [45, 1.2], [70, 0.5]],
+        "M1_return_12m":        [[40, 6], [15, 5], [0, 3.5], [-20, 2], [-40, 1]],
+        "M2_return_6m":         [[20, 4], [5, 3], [-10, 2], [-30, 1]],
+        "M3_drawdown":          [[-10, 4], [-25, 3], [-45, 2], [-70, 1]],
+        "M4_volatility":        [[8, 3], [14, 2.5], [22, 1.5], [35, 0.75]],
+        "M5_liquidity":         [[500e6, 3], [100e6, 2.5], [25e6, 2], [5e6, 1]],
+    },
+    # Points available to each rule. Peer-relative rules take their maximum
+    # from here; changing one re-weights within its pillar automatically.
+    "rule_max": {
+        "P1_net_margin_vs_peers": 6, "P2_ebit_margin_vs_peers": 4,
+        "P3_gross_margin_vs_peers": 3,
+        "V1_pe_vs_peers": 6, "V2_ps_vs_peers": 5,
+    },
+    # Conditions that cap the total no matter how the pillars scored.
+    "caps": {"chronic_losses": 45.0, "illiquid": 50.0, "revenue_collapse": 55.0},
+    "score_bands": [[80, "Strong"], [65, "Above average"], [50, "Average"],
+                    [35, "Below average"], [0, "Weak"]],
+}
+
+
+def deep_merge(base, override):
+    """Recursively overlay `override` on a copy of `base`."""
+    out = dict(base)
+    for k, v in override.items():
+        if isinstance(v, dict) and isinstance(out.get(k), dict):
+            out[k] = deep_merge(out[k], v)
+        else:
+            out[k] = v
+    return out
+
+
+def load_config(path=None):
+    cfg = DEFAULTS
+    if path:
+        with open(path) as fh:
+            cfg = deep_merge(cfg, json.load(fh))
+    return cfg
 
 
 def num(v):
@@ -154,6 +287,7 @@ def load_prices():
     px = collections.defaultdict(list)
     dv = collections.defaultdict(list)
     pe = collections.defaultdict(list)
+    mc = collections.defaultdict(list)
     for r in csv.DictReader(open(M_FILE)):
         m = r["month"]
         a = num(r["adj_close"])
@@ -165,10 +299,13 @@ def load_prices():
         p = num(r["pe_trailing_est"])
         if p and p > 0:
             pe[r["ticker"]].append((m, p))
-    for d in (px, dv, pe):
+        k = num(r["market_cap_est"])
+        if k and k > 0:
+            mc[r["ticker"]].append((m, k))
+    for d in (px, dv, pe, mc):
         for t in d:
             d[t].sort()
-    return px, dv, pe
+    return px, dv, pe, mc
 
 
 def load_keyed(path, key="ticker"):
@@ -290,9 +427,27 @@ def split_adjust(series):
     return adj
 
 
-def compute(t, qs, snap, px, dv, pe_hist):
-    """Everything the rules need, or None where the data will not support it."""
+def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None):
+    """Everything the rules need, or None where the data will not support it.
+
+    `as_of` ("YYYY-MM") scores the company as it looked at that month: every
+    quarter ending after it, and every price after it, is discarded.
+
+    In as-of mode the valuation inputs come from data_monthly.csv rather than
+    data_snapshot.csv, which is a CURRENT snapshot and would leak the future
+    into a historical score. Two caveats follow from that swap and are flagged
+    in the output as `valuation_basis`:
+      * `market_cap_est` is monthly close x CURRENT shares outstanding (see
+        HANDOFF section 8), so a historical market cap is distorted by any
+        buyback or issuance since. P/S inherits that distortion.
+      * `pe_trailing_est` is genuinely historical -- close over trailing EPS as
+        filed at the time -- so P/E is the sounder of the two.
+    """
+    if as_of:
+        qs = [r for r in qs if r["period_end"][:7] <= as_of]
     m = {"quarters": len(qs)}
+    if len(qs) < MIN_QUARTERS:
+        return None
 
     # --- growth basis: prefer a true 3-year comparison ---
     if len(qs) >= FULL_WINDOW:
@@ -365,20 +520,95 @@ def compute(t, qs, snap, px, dv, pe_hist):
             if b > 0:
                 m["share_change"] = (a / b - 1) * 100
 
+    # --- cash flow ---
+    # Present only if fetch_sec_fundamentals.py was run with the ocf/capex
+    # concepts; older data_quarterly.csv files have no such columns and every
+    # cash rule below degrades to "no data" rather than erroring.
+    fcf0 = ttm(qs, "fcf") if "fcf" in qs[-1] else None
+    m["fcf_ttm"] = fcf0
+    m["fcf_margin"] = fcf0 / rev0 * 100 if fcf0 is not None and rev0 and rev0 > 0 else None
+    # Cash conversion: how much of reported profit arrived as cash. This is the
+    # accrual-quality test -- a company booking profit it never collects shows
+    # a high net margin and a conversion near zero. Only meaningful against
+    # POSITIVE earnings; against a loss the ratio is not interpretable.
+    m["fcf_conversion"] = (fcf0 / ni0 * 100
+                           if fcf0 is not None and ni0 is not None and ni0 > 0 else None)
+
     # --- valuation ---
-    mc = num(snap["market_cap"]) if snap else None
+    if as_of:
+        mseries = [(mo, v) for mo, v in mc_hist.get(t, []) if mo <= as_of]
+        mc = mseries[-1][1] if mseries else None
+        reported_pe = next((v for mo, v in reversed(pe_hist.get(t, [])) if mo <= as_of), None)
+        m["valuation_basis"] = "monthly_est"
+    else:
+        mc = num(snap["market_cap"]) if snap else None
+        reported_pe = num(snap["pe_trailing"]) if snap else None
+        m["valuation_basis"] = "snapshot"
     m["market_cap"] = mc
-    m["pe"] = num(snap["pe_trailing"]) if snap else None
+
+    # ------------------------------------------------------------------
+    # P/E: TWO INDEPENDENT ESTIMATES, USED ONLY WHERE THEY AGREE.
+    #
+    # Neither upstream source is trustworthy on its own:
+    #
+    #   pe_reported = price / eps_trailing. Yahoo's prices are split-adjusted
+    #     but SEC's as-filed EPS is not, so any company that has split reads
+    #     wrong. Booking: $193.13 against an as-filed $166.53 EPS gives 1.16
+    #     where the truth is ~20.7. 381 tickers show this inconsistency.
+    #
+    #   pe_mcap = market_cap / TTM net income. Needs no EPS, so splits cannot
+    #     touch it -- but market_cap is price x shares_outstanding, and that
+    #     share count is missing for ~1,000 tickers (including GOOGL, META and
+    #     NVDA) and plainly wrong for others (Mastercard: 122.5M against an
+    #     actual ~910M, implying a $70bn company rather than ~$520bn).
+    #
+    # So they cross-check each other. Agreement within PE_TOLERANCE means both
+    # share bases line up and the number is sound. Disagreement means one of
+    # them is broken and we cannot tell which, so the P/E rules are DROPPED and
+    # the company is flagged rather than scored on a figure that might be 20x
+    # out. Where only one estimate exists it is used unchecked, which is the
+    # honest limit of what this data supports.
+    # ------------------------------------------------------------------
+    m["pe_reported"] = reported_pe
+    pe_mcap = mc / ni0 if (mc and ni0 and ni0 > 0) else None
+    pe_rep = reported_pe if (reported_pe and reported_pe > 0) else None
+    m["pe_mcap"] = pe_mcap
+
+    if pe_mcap and pe_rep:
+        agree = abs(pe_mcap - pe_rep) / max(pe_mcap, pe_rep) <= PE_TOLERANCE
+        m["pe"] = pe_mcap if agree else None
+        m["pe_unreliable"] = not agree
+    else:
+        m["pe"] = pe_mcap or pe_rep
+        m["pe_unreliable"] = False
+
+    # Market cap drives P/S and P/FCF too, so where it is missing but the
+    # reported P/E is usable, back it out: mcap = pe x earnings. This recovers
+    # the mega-caps whose share count SEC never tagged.
+    if not mc and pe_rep and ni0 and ni0 > 0:
+        mc = pe_rep * ni0
+        m["market_cap_source"] = "derived_from_pe"
+    elif mc:
+        m["market_cap_source"] = "snapshot" if not as_of else "monthly_est"
+    else:
+        m["market_cap_source"] = ""
+    # A market cap we could not corroborate should not drive a valuation
+    # multiple either.
+    if m["pe_unreliable"]:
+        mc = None
+    m["market_cap"] = mc
     m["ps"] = mc / rev0 if mc and rev0 and rev0 > 0 else None
+    m["p_fcf"] = mc / fcf0 if mc and fcf0 and fcf0 > 0 else None
     m["peg"] = (m["pe"] / m["rev_cagr"]
                 if m["pe"] and m["pe"] > 0 and m["rev_cagr"] and m["rev_cagr"] > 0 else None)
 
-    hist = [p for _, p in pe_hist.get(t, [])][-36:]
+    pe_series = [(mo, v) for mo, v in pe_hist.get(t, []) if not as_of or mo <= as_of]
+    hist = [p for _, p in pe_series][-36:]
     m["pe_vs_own"] = (m["pe"] / statistics.median(hist)
                       if m["pe"] and m["pe"] > 0 and len(hist) >= 12 else None)
 
     # --- price behaviour ---
-    closes = [c for _, c in px.get(t, [])]
+    closes = [c for mo, c in px.get(t, []) if not as_of or mo <= as_of]
     m["ret_12m"] = ((closes[-1] / closes[-13] - 1) * 100
                     if len(closes) >= 13 and closes[-13] > 0 else None)
     m["ret_6m"] = ((closes[-1] / closes[-7] - 1) * 100
@@ -392,8 +622,9 @@ def compute(t, qs, snap, px, dv, pe_hist):
     else:
         m["drawdown"] = m["volatility"] = None
 
-    vols = [v for _, v in dv.get(t, [])][-12:]
+    vols = [v for mo, v in dv.get(t, []) if not as_of or mo <= as_of][-12:]
     m["dollar_volume"] = statistics.median(vols) if vols else None
+    m["window_end"] = qs[-1]["period_end"] if qs else ""
     return m
 
 
@@ -403,92 +634,106 @@ def compute(t, qs, snap, px, dv, pe_hist):
 # invented -- the percentile each band sits at is noted in the comments.
 # --------------------------------------------------------------------------
 
-def rules_growth(m):
-    r = {}
-    # universe: median 6% CAGR, p75 14%, p90 30%
-    r["G1_revenue_cagr"] = (band(m["rev_cagr"], [
-        (25, 8), (15, 6.5), (8, 5), (3, 3.5), (0, 2), (-5, 1)]), 8)
-    # median yoy 7.7%, p75 17.8%
-    r["G2_revenue_yoy"] = (band(m["rev_yoy"], [
-        (20, 5), (10, 4), (5, 3), (0, 2), (-10, 1)]), 5)
-    # median eps CAGR 9.4%, p75 25%
-    r["G3_eps_cagr"] = (band(m["eps_cagr"], [
-        (20, 4), (10, 3), (0, 2), (-15, 1)]), 4)
-    # is the most recent year outrunning the multi-year trend
-    r["G4_acceleration"] = (band(m["accel"], [(5, 3), (0, 2), (-5, 1)]), 3)
-    return r
+def rules_growth(m, ctx):
+    B = ctx.cfg["bands"]
+    return {
+        "G1_revenue_cagr":  (band(m["rev_cagr"], B["G1_revenue_cagr"]), 8),
+        "G2_revenue_yoy":   (band(m["rev_yoy"], B["G2_revenue_yoy"]), 5),
+        "G3_eps_cagr":      (band(m["eps_cagr"], B["G3_eps_cagr"]), 4),
+        # is the most recent year outrunning the multi-year trend
+        "G4_acceleration":  (band(m["accel"], B["G4_acceleration"]), 3),
+    }
 
 
-def rules_profitability(m):
-    r = {}
-    # median net margin 4.9%, p75 16%, p90 29%
-    r["P1_net_margin"] = (band(m["net_margin"], [
-        (20, 7), (12, 6), (6, 4.5), (2, 3), (0, 1.5), (-10, 0.5)]), 7)
-    # median ebit margin 3.9%, p75 14.5%
-    r["P2_ebit_margin"] = (band(m["ebit_margin"], [
-        (18, 5), (10, 4), (5, 3), (0, 1.5)]), 5)
-    # median gross margin 39%, p75 60% -- only ~31% of filers tag it
-    r["P3_gross_margin"] = (band(m["gross_margin"], [
-        (60, 4), (40, 3), (25, 2), (15, 1)]), 4)
-    # bimodal in this universe: median 7 of 12, but p25 is 1
-    r["P4_profitable_quarters"] = (band(m["profitable_q"], [
-        (12, 4), (10, 3), (7, 2), (4, 1)]), 4)
-    return r
+def rules_profitability(m, ctx):
+    """Profitability is scored PEER-RELATIVE, not on absolute margin bands.
+
+    Absolute bands were the main driver of the Financials tilt: median net
+    margin is 21.2% in Financials against 6.6% in Consumer Staples, so a
+    grocer performing exactly at its industry median scored mid-band while a
+    bank at its industry median maxed the rule. Ranking within sector removes
+    that by construction.
+
+    13 of the 20 points are peer-relative and 7 stay absolute. The absolute
+    floor is deliberate: "does this company actually earn money" is a real
+    question that a percentile cannot answer -- in a sector where everyone
+    loses money, the least-bad loss-maker still ranks in the 90th percentile.
+    """
+    B = ctx.cfg["bands"]
+    return {
+        "P1_net_margin_vs_peers":   ctx.peer_points(m, "net_margin", "P1_net_margin_vs_peers"),
+        "P2_ebit_margin_vs_peers":  ctx.peer_points(m, "ebit_margin", "P2_ebit_margin_vs_peers"),
+        "P3_gross_margin_vs_peers": ctx.peer_points(m, "gross_margin", "P3_gross_margin_vs_peers"),
+        # Absolute floor -- sector-neutral, and the guard against the "best of
+        # a uniformly unprofitable industry" failure mode above.
+        "P4_net_margin_absolute":   (band(m["net_margin"], B["P4_net_margin_absolute"]), 4),
+        "P5_profitable_quarters":   (band(m["profitable_q"], B["P5_profitable_quarters"]), 3),
+    }
 
 
-def rules_quality(m):
-    r = {}
-    # median margin change +0.7pp, p75 +7pp
-    r["Q1_margin_trend"] = (band(m["margin_delta"], [
-        (5, 6), (2, 5), (0, 3.5), (-2, 2), (-5, 1)]), 6)
-    # median stdev of yoy growth 9.0, p25 4.4, p75 21.5 -- lower is steadier
-    r["Q2_growth_stability"] = (band_low(m["growth_sd"], [
-        (5, 5), (10, 4), (20, 3), (35, 2), (60, 1)]), 5)
-    # buybacks reward, dilution penalises; coarse bands because the implied
-    # share count is noisy (see diluted_shares)
-    r["Q3_share_count"] = (band_low(m["share_change"], [
-        (-3, 5), (0, 4), (2, 3), (10, 2), (25, 1)]), 5)
+def rules_quality(m, ctx):
+    B = ctx.cfg["bands"]
+    r = {
+        "Q1_margin_trend":     (band(m["margin_delta"], B["Q1_margin_trend"]), 5),
+        "Q2_growth_stability": (band_low(m["growth_sd"], B["Q2_growth_stability"]), 4),
+        # buybacks reward, dilution penalises; coarse bands because the implied
+        # share count is noisy (see implied_shares)
+        "Q3_share_count":      (band_low(m["share_change"], B["Q3_share_count"]), 4),
+        # Cash conversion. 100% means every dollar of reported profit arrived
+        # as free cash. Comfortably above 100 is normal for asset-light
+        # compounders (D&A exceeds capex); persistently below ~40 says the
+        # profit is accruals. Scored only against positive earnings.
+        "Q5_cash_conversion":  (band(m["fcf_conversion"], B["Q5_cash_conversion"]), 4),
+    }
     if m["pos_ttm_known"] == 0:
-        r["Q4_earnings_streak"] = (None, 4)
+        r["Q4_earnings_streak"] = (None, 3)
     else:
-        r["Q4_earnings_streak"] = ({3: 4, 2: 2.5, 1: 1.5}.get(m["pos_ttm"], 0.0), 4)
+        r["Q4_earnings_streak"] = ({3: 3, 2: 2, 1: 1}.get(m["pos_ttm"], 0.0), 3)
     return r
 
 
-def rules_valuation(m):
-    r = {}
-    # median pe 19.8, p25 12.7, p75 35.3.  A negative pe means losses: it is
-    # scored 0 rather than dropped, because "no earnings to value" is a real
-    # answer to "is this cheap", not missing data.
-    pe = m["pe"]
-    r["V1_pe"] = ((band(pe, [(0.01, 0)]) if pe is not None and pe <= 0 else
-                   band_low(pe, [(10, 8), (15, 7), (20, 5.5), (30, 4), (45, 2.5), (70, 1)])), 8)
-    # median ps 2.5, p25 0.9, p75 4.9 -- works for loss-makers, unlike pe
-    r["V2_price_to_sales"] = (band_low(m["ps"], [
-        (0.75, 6), (1.5, 5), (3, 3.5), (6, 2), (12, 1)]), 6)
-    # growth-adjusted: pe per point of revenue growth
-    r["V3_peg"] = (band_low(m["peg"], [(1, 4), (1.5, 3), (2.5, 2), (4, 1)]), 4)
-    # cheap or dear against its OWN 3-year median multiple
-    r["V4_pe_vs_history"] = (band_low(m["pe_vs_own"], [
-        (0.7, 2), (0.9, 1.5), (1.1, 1), (1.4, 0.5)]), 2)
-    return r
+def rules_valuation(m, ctx):
+    """Valuation multiples are scored PEER-RELATIVE for the same reason
+    margins are, plus one specific to this pillar: absolute P/E bands rot as
+    rates move. A P/E of 20 is expensive at 8% policy rates and unremarkable
+    at 2%, so a fixed table needs re-cutting after every macro regime change.
+    A percentile does not -- it re-baselines itself on every run.
+
+    Its measured sector spread was 8.8 points, LARGER than profitability's
+    5.5, because banks structurally trade cheap on earnings.
+
+    A loss-making company is excluded from the P/E distribution and scored
+    zero on that rule rather than dropped: "no earnings to value" is a real
+    answer to "is this cheap", not missing data.
+    """
+    B = ctx.cfg["bands"]
+    pe_rule = ctx.peer_points(m, "pe", "V1_pe_vs_peers")
+    if m["pe"] is not None and m["pe"] <= 0:
+        pe_rule = (0.0, ctx.cfg["rule_max"]["V1_pe_vs_peers"])
+    return {
+        "V1_pe_vs_peers": pe_rule,
+        "V2_ps_vs_peers": ctx.peer_points(m, "ps", "V2_ps_vs_peers"),
+        # growth-adjusted: pe per point of revenue growth
+        "V3_peg":            (band_low(m["peg"], B["V3_peg"]), 3),
+        # cheap or dear against its OWN 3-year median multiple -- the one rule
+        # that is time-relative rather than cross-sectional
+        "V4_pe_vs_history":  (band_low(m["pe_vs_own"], B["V4_pe_vs_history"]), 2),
+        # Price to free cash flow. Harder to manipulate than P/E -- cash is
+        # cash -- and it prices the capital intensity P/E ignores. A negative
+        # FCF yields no multiple, so the rule drops rather than scoring 0.
+        "V5_price_to_fcf":   (band_low(m["p_fcf"], B["V5_price_to_fcf"]), 4),
+    }
 
 
-def rules_momentum(m):
-    r = {}
-    # median 12m return 1.5%, p75 34%
-    r["M1_return_12m"] = (band(m["ret_12m"], [
-        (40, 6), (15, 5), (0, 3.5), (-20, 2), (-40, 1)]), 6)
-    r["M2_return_6m"] = (band(m["ret_6m"], [(20, 4), (5, 3), (-10, 2), (-30, 1)]), 4)
-    # median drawdown -32%: this universe is mostly well off its highs
-    r["M3_drawdown"] = (band(m["drawdown"], [(-10, 4), (-25, 3), (-45, 2), (-70, 1)]), 4)
-    # median monthly stdev 15% -- micro-caps dominate, so this is punishing
-    r["M4_volatility"] = (band_low(m["volatility"], [
-        (8, 3), (14, 2.5), (22, 1.5), (35, 0.75)]), 3)
-    # median monthly dollar volume $59M; below ~$1M you cannot get a fill
-    r["M5_liquidity"] = (band(m["dollar_volume"], [
-        (500e6, 3), (100e6, 2.5), (25e6, 2), (5e6, 1)]), 3)
-    return r
+def rules_momentum(m, ctx):
+    B = ctx.cfg["bands"]
+    return {
+        "M1_return_12m":  (band(m["ret_12m"], B["M1_return_12m"]), 6),
+        "M2_return_6m":   (band(m["ret_6m"], B["M2_return_6m"]), 4),
+        "M3_drawdown":    (band(m["drawdown"], B["M3_drawdown"]), 4),
+        "M4_volatility":  (band_low(m["volatility"], B["M4_volatility"]), 3),
+        "M5_liquidity":   (band(m["dollar_volume"], B["M5_liquidity"]), 3),
+    }
 
 
 RULESETS = {
@@ -498,6 +743,85 @@ RULESETS = {
     "valuation": rules_valuation,
     "momentum": rules_momentum,
 }
+
+# A sector needs this many members with a value before its own distribution is
+# trusted; below it the company is ranked against the whole universe instead.
+# Ranking against 4 peers produces percentiles of 0/25/50/75/100 and nothing in
+# between, which would be noise dressed as precision.
+MIN_PEERS = 20
+
+
+class PeerContext:
+    """Percentile-rank lookups within a company's own sector.
+
+    Built in one pass over every company's metrics, then queried while scoring.
+    That ordering is why main() is two-pass: a peer-relative rule cannot be
+    evaluated until every peer has been measured.
+
+    This is also the mechanism that keeps the score honest as macro conditions
+    move -- percentiles re-baseline every run, so a market-wide de-rating
+    shifts everybody's multiples without shifting anybody's score.
+    """
+
+    # Margins: higher is better. Multiples: LOWER is better, so their
+    # percentile is inverted at query time.
+    PEER_METRICS = ("net_margin", "ebit_margin", "gross_margin", "pe", "ps")
+    LOWER_IS_BETTER = ("pe", "ps")
+
+    def __init__(self, metrics_by_ticker, sector_of, cfg):
+        self.cfg = cfg
+        self.sector_of = sector_of
+        self.dists = collections.defaultdict(list)
+        for t, m in metrics_by_ticker.items():
+            sec = sector_of.get(t) or ""
+            for key in self.PEER_METRICS:
+                v = m.get(key)
+                # A negative P/E is not "cheap", it means there are no
+                # earnings. Excluding it keeps the distribution a ranking of
+                # actual valuations; those companies score 0 on the rule.
+                if v is None or (key in self.LOWER_IS_BETTER and v <= 0):
+                    continue
+                self.dists[(sec, key)].append(v)
+                self.dists[("__ALL__", key)].append(v)
+        for k in self.dists:
+            self.dists[k].sort()
+
+    def _pool(self, sector, key):
+        vals = self.dists.get((sector, key), [])
+        if len(vals) < self.cfg["min_peers"]:
+            vals = self.dists.get(("__ALL__", key), [])
+        return vals
+
+    def pctile(self, m, key):
+        """Where this company sits among peers, 0-100, already oriented so
+        that HIGHER always means better."""
+        v = m.get(key)
+        if v is None:
+            return None
+        if key in self.LOWER_IS_BETTER and v <= 0:
+            return None
+        vals = self._pool(m.get("_sector") or "", key)
+        if not vals:
+            return None
+        lo = bisect.bisect_left(vals, v)
+        hi = bisect.bisect_right(vals, v)
+        pct = 100.0 * ((lo + hi) / 2.0) / len(vals)
+        return (100.0 - pct) if key in self.LOWER_IS_BETTER else pct
+
+    def median(self, sector, key):
+        vals = self._pool(sector, key)
+        return statistics.median(vals) if vals else None
+
+    def peer_points(self, m, key, rule):
+        """Percentile -> points for `rule`, using the configured bands."""
+        mx = self.cfg["rule_max"][rule]
+        pct = self.pctile(m, key)
+        if pct is None:
+            return (None, mx)
+        for lo, frac in self.cfg["peer_bands"]:
+            if pct >= lo:
+                return (round(frac * mx, 3), mx)
+        return (0.0, mx)
 
 
 def flags(m, pillars):
@@ -517,31 +841,29 @@ def flags(m, pillars):
         f.append("very_volatile")
     if m["pe"] is not None and m["pe"] > 70:
         f.append("expensive_pe")
+    if m.get("pe_unreliable"):
+        f.append("pe_unreliable")
     return f
 
 
-# Caps applied AFTER the total, because a high pillar average should not be
-# able to carry a company that cannot be traded or has never earned anything.
-CAPS = {"chronic_losses": 45.0, "illiquid": 50.0, "revenue_collapse": 55.0}
-
-BANDS = [(80, "Strong"), (65, "Above average"), (50, "Average"),
-         (35, "Below average"), (0, "Weak")]
 
 
-def score_one(m):
+def score_one(m, ctx):
+    cfg = ctx.cfg
+    weights = cfg["pillar_weights"]
     pillar_scores, detail, scored, possible = {}, {}, 0.0, 0.0
     for name, fn in RULESETS.items():
-        got = 0.0
-        cap = 0.0
-        for rule, (pts, mx) in fn(m).items():
+        w = float(weights.get(name, 0.0))
+        got = cap = 0.0
+        for rule, (pts, mx) in fn(m, ctx).items():
             detail[rule] = pts
             if pts is not None:
                 got += pts
                 cap += mx
-        if cap > 0:
-            pillar_scores[name] = got / cap * PILLAR_MAX
-            scored += got / cap * PILLAR_MAX
-            possible += PILLAR_MAX
+        if cap > 0 and w > 0:
+            pillar_scores[name] = got / cap * w
+            scored += pillar_scores[name]
+            possible += w
         else:
             pillar_scores[name] = None
 
@@ -554,8 +876,8 @@ def score_one(m):
 
     fl = flags(m, pillar_scores)
     for f in fl:
-        if f in CAPS:
-            total = min(total, CAPS[f])
+        if f in cfg["caps"]:
+            total = min(total, cfg["caps"][f])
     return total, pillar_scores, detail, confidence, fl
 
 
@@ -565,35 +887,86 @@ def main():
     ap.add_argument("--min-confidence", type=float, default=0.0)
     ap.add_argument("--sp500-only", action="store_true")
     ap.add_argument("--out", default=OUT)
+    ap.add_argument("--config", default=None,
+                    help="JSON file deep-merged over DEFAULTS (weights, bands, caps)")
+    ap.add_argument("--dump-config", action="store_true",
+                    help="print the active configuration and exit")
+    ap.add_argument("--as-of", default=None, metavar="YYYY-MM",
+                    help="score as the company looked at this month; all later "
+                         "quarters and prices are discarded")
     args = ap.parse_args()
 
+    cfg = load_config(args.config)
+    if args.dump_config:
+        json.dump(cfg, sys.stdout, indent=2)
+        print()
+        return
+
     quarters = load_quarters()
-    px, dv, pe_hist = load_prices()
+    px, dv, pe_hist, mc_hist = load_prices()
     snaps = load_keyed(S_FILE)
     uni = load_keyed(U_FILE)
+    sic = load_keyed(SIC_FILE) if os.path.exists(SIC_FILE) else {}
     print("loaded %d tickers with quarterly history" % len(quarters), file=sys.stderr)
 
-    rows, not_rated = [], 0
+    # Sector resolution: the Wikipedia GICS sector wins where it exists, since
+    # the S&P names are actually indexed on it, and the SIC-derived sector
+    # fills the other ~3,200. Without data_sic.csv only ~500 names are
+    # rankable against peers and the peer rules fall back to the whole universe.
+    # The sector is re-derived HERE from the raw SIC code rather than read from
+    # the sector_sic column data_sic.csv already carries. The code is the
+    # durable fact and the mapping is a judgement call that will keep being
+    # tuned -- deriving at scoring time means a mapping fix costs nothing,
+    # where trusting the stored column would mean re-fetching 3,717 filings
+    # from SEC every time a range moved.
+    sector_of, src = {}, collections.Counter()
     for t, u in uni.items():
-        qs = quarters.get(t, [])
-        snap = snaps.get(t)
-        if len(qs) < MIN_QUARTERS:
+        gics = (u.get("sector") or "").strip()
+        rec = sic.get(t, {})
+        sic_sec = sector_for(rec.get("sic")) or (rec.get("sector_sic") or "").strip()
+        sector_of[t] = gics or sic_sec
+        src["gics" if gics else ("sic" if sic_sec else "none")] += 1
+    print("sector source: %d GICS, %d SIC, %d unclassified"
+          % (src["gics"], src["sic"], src["none"]), file=sys.stderr)
+
+    # PASS 1 -- measure everyone. Peer-relative rules cannot be evaluated
+    # until every peer has been measured, which is why this is split in two.
+    metrics, not_rated = {}, 0
+    for t in uni:
+        m = compute(t, quarters.get(t, []), snaps.get(t), px, dv, pe_hist,
+                    mc_hist, args.as_of)
+        if m is None:          # fewer than MIN_QUARTERS inside the window
             not_rated += 1
             continue
-        m = compute(t, qs, snap, px, dv, pe_hist)
-        total, pillars, detail, conf, fl = score_one(m)
+        m["_sector"] = sector_of.get(t, "")
+        metrics[t] = m
+
+    ctx = PeerContext(metrics, sector_of, cfg)
+
+    # PASS 2 -- score against the peer distributions built above.
+    rows = []
+    for t, m in metrics.items():
+        u = uni[t]
+        total, pillars, detail, conf, fl = score_one(m, ctx)
         if total is None:
             not_rated += 1
             continue
         rows.append({
             "ticker": t,
             "company": u["company"],
-            "sector": u["sector"],
+            "sector": sector_of.get(t, ""),
+            "sector_src": ("gics" if (u.get("sector") or "").strip() else
+                           ("sic" if sector_of.get(t) else "")),
+            "sic": sic.get(t, {}).get("sic", ""),
+            "sic_description": sic.get(t, {}).get("sic_description", ""),
             "score": round(total, 1),
-            "band": next(b for lo, b in BANDS if total >= lo),
+            "band": next(b for lo, b in cfg["score_bands"] if total >= lo),
             "confidence": round(conf, 2),
             "quarters": m["quarters"],
             "growth_basis": m["growth_basis"],
+            "as_of": args.as_of or "latest",
+            "window_end": m.get("window_end", ""),
+            "valuation_basis": m.get("valuation_basis", ""),
             **{p: (round(pillars[p], 1) if pillars[p] is not None else "")
                for p in PILLARS},
             "flags": "|".join(fl),
@@ -602,7 +975,15 @@ def main():
                          "ebit_margin", "gross_margin", "margin_delta",
                          "profitable_q", "growth_sd", "share_change", "pe", "ps",
                          "peg", "pe_vs_own", "ret_12m", "ret_6m", "drawdown",
-                         "volatility", "dollar_volume", "market_cap"]},
+                         "volatility", "dollar_volume", "market_cap",
+                         "fcf_ttm", "fcf_margin", "fcf_conversion", "p_fcf",
+                         "pe_reported", "pe_mcap", "market_cap_source"]},
+            "peer_net_margin_median": (
+                round(ctx.median(m["_sector"], "net_margin"), 2)
+                if ctx.median(m["_sector"], "net_margin") is not None else ""),
+            "peer_pctile_net_margin": (
+                round(ctx.pctile(m, "net_margin"))
+                if ctx.pctile(m, "net_margin") is not None else ""),
             **{k: (round(v, 2) if isinstance(v, float) else ("" if v is None else v))
                for k, v in detail.items()},
         })
@@ -645,10 +1026,11 @@ def main():
         for r in rows:
             w.writerow({k: ("" if v is None else v) for k, v in r.items()})
 
-    print("scored %d, not rated %d -> %s" % (len(rows), not_rated, args.out),
+    print("scored %d, not rated %d  (as-of %s) -> %s"
+          % (len(rows), not_rated, args.as_of or "latest", args.out),
           file=sys.stderr)
     dist = collections.Counter(r["band"] for r in rows)
-    for _, b in BANDS:
+    for _, b in cfg["score_bands"]:
         print("   %-15s %5d" % (b, dist[b]), file=sys.stderr)
 
     if args.top:

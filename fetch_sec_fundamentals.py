@@ -8,8 +8,14 @@ filed, so a full 20-quarter window is achievable.
 
 Writes data_quarterly.csv with the schema build_excel.py expects:
   ticker, company, period_end, fiscal_quarter, currency, revenue, gross_profit,
-  ebit, ebitda, net_income, eps_diluted, gross_margin_pct, ebit_margin_pct,
-  ebitda_margin_pct, net_margin_pct
+  ebit, ebitda, net_income, eps_diluted, ocf, capex, fcf, gross_margin_pct,
+  ebit_margin_pct, ebitda_margin_pct, net_margin_pct, fcf_margin_pct
+
+CASH FLOW NOTE
+  ocf/capex/fcf come off the cash-flow statement, which XBRL tags YEAR-TO-DATE
+  rather than per quarter. They go through the same ytd_to_quarterly() path as
+  dep_amort; see CASHFLOW_YTD. fcf = ocf - capex and is emitted ONLY when both
+  legs are present -- an untagged capex is not zero.
 
 Q4 NOTE
   Companies do not file a 10-Q for their fourth fiscal quarter -- Q4 only
@@ -40,7 +46,12 @@ import requests
 # --------------------------------------------------------------------------
 # Config
 # --------------------------------------------------------------------------
-UA = "StockPipelineDataCollector/1.0"
+# SEC returns 403 for generic User-Agents and requires a contact email. The
+# previous value here -- "StockPipelineDataCollector/1.0" -- is the exact string
+# HANDOFF.md records as rejected outright; the 2026-08-06 rebuild fixed
+# build_universe.py but this file was missed, leaving the pipeline one SEC
+# policy tightening away from silently fetching nothing.
+UA = "Research Data Collection (attila.imecs@gmail.com)"
 BASE = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
 
 # 6, not 5. A 5-year window starting mid-2021 cannot complete fiscal 2021 for
@@ -52,7 +63,11 @@ Q_FILE = "data_quarterly.csv"
 DONE_FILE = "_sec_done.txt"
 SHARES_FILE = "data_shares.csv"
 
-REQ_PER_SEC = 8.0          # SEC hard limit is 10/s; stay under it
+REQ_PER_SEC = float(os.environ.get("SEC_REQ_PER_SEC", 6.0))
+# SEC's hard cap is 10/s. 6 rather than 8 because a sustained 429 block
+# takes ~10 minutes to clear and costs far more than the throughput saved.
+# NEVER run two SEC fetchers at once: 8+8 exceeds the cap and blocks both
+# silently, since each script's own backoff hides the rejections.
 # Upper bound is 125, not 100. Retailers on a 4-5-4 calendar run one 16-week
 # quarter a year alongside three 12-week ones -- Albertsons files 83-day and
 # 111-day periods. A 100-day ceiling silently discarded the 16-week quarter,
@@ -96,11 +111,38 @@ CONCEPTS = {
         "DepreciationAmortizationAndAccretionNet",
         "DepreciationAndAmortization",
     ],
+    # Operating cash flow. The total (including discontinued operations) is
+    # listed first because the continuing-operations tag is a SUBSET -- taking
+    # it when both exist would understate a company mid-divestiture.
+    "ocf": [
+        "NetCashProvidedByUsedInOperatingActivities",
+        "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+    ],
+    # Capital expenditure, tagged as a POSITIVE cash outflow. Filers split it
+    # across several tags and no single one is universal, so this uses
+    # merge="max" (see CASHFLOW_YTD below): the candidates overlap as
+    # total-vs-component rather than as alternatives, and a component is by
+    # definition the smaller number.
+    "capex": [
+        "PaymentsToAcquirePropertyPlantAndEquipment",
+        "PaymentsToAcquireProductiveAssets",
+        "PaymentsForCapitalImprovements",
+        "PaymentsToAcquireOtherPropertyPlantAndEquipment",
+        "PaymentsToAcquireMachineryAndEquipment",
+    ],
 }
 
 # Fields where Q4 = FY - (Q1+Q2+Q3) is a valid derivation. All of these are
 # flow measures that sum across the year. Balance-sheet items would not be.
-ADDITIVE = ("revenue", "gross_profit", "ebit", "net_income", "eps_diluted", "dep_amort")
+ADDITIVE = ("revenue", "gross_profit", "ebit", "net_income", "eps_diluted",
+            "dep_amort", "ocf", "capex")
+
+# Cash-flow-statement items are tagged YEAR-TO-DATE, not per quarter: a bare
+# ~90-day filter finds only Q1 and silently drops three quarters in four.
+# ytd_to_quarterly() differences consecutive cumulative periods to recover the
+# rest. This is the same treatment dep_amort has always needed -- getting it
+# wrong on ocf/capex would put Q1's cash flow against a full year of revenue.
+CASHFLOW_YTD = ("dep_amort", "ocf", "capex")
 
 # Holding-company reorganizations and large mergers create a NEW CIK, and SEC's
 # company_tickers.json maps the ticker to that successor. The successor holds
@@ -646,8 +688,9 @@ def build_rows(ticker, meta, facts, cutoff: date):
         else:
             q, a, unit, derived = extract_series(
                 usgaap, candidates, cutoff,
-                use_ytd=(field == "dep_amort"),
+                use_ytd=(field in CASHFLOW_YTD),
                 additive=(field in ADDITIVE),
+                merge=("max" if field == "capex" else "priority"),
             )
         annual_periods |= set(a)
         for k in derived:
@@ -700,6 +743,13 @@ def build_rows(ticker, meta, facts, cutoff: date):
         eps = val("eps_diluted")
         da = val("dep_amort")
         ebitda = (ebit + da) if (ebit is not None and da is not None) else None
+        ocf, capex = val("ocf"), val("capex")
+        # FCF requires BOTH legs. Treating an untagged capex as zero would
+        # publish operating cash flow as free cash flow, which is exactly wrong
+        # for the capital-intensive filers where the distinction matters most.
+        # capex is filed as a positive outflow; abs() guards the filers who
+        # sign it negative.
+        fcf = (ocf - abs(capex)) if (ocf is not None and capex is not None) else None
 
         def margin(num):
             if rev and num is not None and rev != 0:
@@ -720,10 +770,14 @@ def build_rows(ticker, meta, facts, cutoff: date):
             "ebitda": ebitda,
             "net_income": net,
             "eps_diluted": eps,
+            "ocf": ocf,
+            "capex": (abs(capex) if capex is not None else None),
+            "fcf": fcf,
             "gross_margin_pct": margin(gross),
             "ebit_margin_pct": margin(ebit),
             "ebitda_margin_pct": margin(ebitda),
             "net_margin_pct": margin(net),
+            "fcf_margin_pct": margin(fcf),
             "period_start": start,
             "period_type": "Q",
             "q4_derived": bool(q4_flags.get(end, False)),
@@ -731,7 +785,8 @@ def build_rows(ticker, meta, facts, cutoff: date):
         })
 
     # drop rows that carry no financial content at all
-    money = ("revenue", "gross_profit", "ebit", "net_income", "eps_diluted")
+    money = ("revenue", "gross_profit", "ebit", "net_income", "eps_diluted",
+             "ocf", "fcf")
     rows = [r for r in rows if any(r[c] is not None for c in money)]
 
     rows = drop_impossible_revenue(rows, annual_series.get("revenue", {}), fiscal_years)
@@ -776,7 +831,7 @@ def drop_impossible_revenue(rows, annual_rev, fiscal_years):
         if bogus:
             r["revenue"] = None
             for k in ("gross_margin_pct", "ebit_margin_pct",
-                      "ebitda_margin_pct", "net_margin_pct"):
+                      "ebitda_margin_pct", "net_margin_pct", "fcf_margin_pct"):
                 r[k] = None
     return rows
 
@@ -795,7 +850,8 @@ def collapse_near_duplicates(rows, tol_days=12):
     """
     if len(rows) < 2:
         return rows
-    fields = ("revenue", "gross_profit", "ebit", "ebitda", "net_income", "eps_diluted")
+    fields = ("revenue", "gross_profit", "ebit", "ebitda", "net_income",
+              "eps_diluted", "ocf", "capex", "fcf")
     ordered = sorted(rows, key=lambda r: r["period_end"])
 
     out, group = [], [ordered[0]]
@@ -821,7 +877,8 @@ def _merge_group(group, fields):
                 best[f] = other[f]
     rev = best.get("revenue")
     for name, num in (("gross_margin_pct", "gross_profit"), ("ebit_margin_pct", "ebit"),
-                      ("ebitda_margin_pct", "ebitda"), ("net_margin_pct", "net_income")):
+                      ("ebitda_margin_pct", "ebitda"), ("net_margin_pct", "net_income"),
+                      ("fcf_margin_pct", "fcf")):
         v = best.get(num)
         best[name] = round(v / rev * 100, 3) if (rev and v is not None) else None
     return best
@@ -864,6 +921,8 @@ def annual_only_rows(ticker, meta, annual_series, units, quarterly_rows, cutoff)
             rev = None
         ebit, da = val("ebit"), val("dep_amort")
         gross, net, eps = val("gross_profit"), val("net_income"), val("eps_diluted")
+        ocf, capex = val("ocf"), val("capex")
+        fcf = (ocf - abs(capex)) if (ocf is not None and capex is not None) else None
         if gross is not None and rev is not None and gross > rev * 1.005:
             gross = None          # same incompatible-basis guard as quarterly rows
         ebitda = (ebit + da) if (ebit is not None and da is not None) else None
@@ -881,8 +940,11 @@ def annual_only_rows(ticker, meta, annual_series, units, quarterly_rows, cutoff)
             "currency": currency,
             "revenue": rev, "gross_profit": gross, "ebit": ebit, "ebitda": ebitda,
             "net_income": net, "eps_diluted": eps,
+            "ocf": ocf, "capex": (abs(capex) if capex is not None else None),
+            "fcf": fcf,
             "gross_margin_pct": margin(gross), "ebit_margin_pct": margin(ebit),
             "ebitda_margin_pct": margin(ebitda), "net_margin_pct": margin(net),
+            "fcf_margin_pct": margin(fcf),
             "period_start": start,
             "period_type": "FY",
             "q4_derived": False,
@@ -927,7 +989,9 @@ def append(path, rows, columns):
 COLUMNS = [
     "ticker", "company", "period_end", "fiscal_quarter", "currency",
     "revenue", "gross_profit", "ebit", "ebitda", "net_income", "eps_diluted",
+    "ocf", "capex", "fcf",
     "gross_margin_pct", "ebit_margin_pct", "ebitda_margin_pct", "net_margin_pct",
+    "fcf_margin_pct",
     "period_start", "period_type", "q4_derived", "source",
 ]
 
