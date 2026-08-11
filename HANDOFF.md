@@ -1166,3 +1166,43 @@ below does not support it.
   anything understated.
 * rho ≈ 0.25 is modest in absolute terms. It is a useful ranking, not a
   forecast, and it says nothing about any individual company.
+
+### The +0.26 is entirely downside — the score avoids losers, it does not pick winners
+
+Ranking every ticker by forward return and comparing that ranking to the score
+ranking splits the correlation cleanly in two.
+
+**At the top, the score has no skill at all:**
+
+| overlap | 2024-12 | random | 2025-12 | random |
+|---|---|---|---|---|
+| top 50 by score ∩ top 50 by return | 2% | 2% | 2% | 2% |
+| top 100 ∩ top 100 | 5% | 5% | 2% | 4% |
+| top 250 ∩ top 250 | 14% | 12% | 8% | 11% |
+
+**At the bottom, it is 7-12x better than chance:**
+
+| overlap | 2024-12 | random | 2025-12 | random |
+|---|---|---|---|---|
+| bottom 50 ∩ bottom 50 | **24%** | 2% | **14%** | 2% |
+| bottom 100 ∩ bottom 100 | **38%** | 5% | **33%** | 4% |
+| bottom 250 ∩ bottom 250 | **44%** | 12% | **36%** | 11% |
+
+The clearest statement of it: **the 100 best-performing stocks had a median
+score of 45.0, against a universe median of 54.0.** The biggest winners scored
+BELOW average. The 100 worst had a median of 26.9.
+
+Head-to-head on the 20-month window, the top performers were ranked by the
+score at the 35th percentile (AXT, +2,957%), 6th (XMAX, +1,255%), 48th
+(Western Digital, +1,134%), 47th (Micron, +968%) and 20th (Lumentum, +926%).
+Those are memory, storage and photonics — deep cyclicals coming off a trough,
+plus turnarounds. A rubric built on trailing profitability, margin quality and
+recent momentum ranks a company at the bottom of its cycle *low*, which is
+exactly when its forward return is highest.
+
+**What the score is, therefore:** a filter that reliably identifies businesses
+likely to keep deteriorating, and a poor instrument for finding the next
+multi-bagger. Its top decile beat its bottom decile by 83 points over 20 months
+almost entirely by not owning the bottom. Used as a screen to exclude, it earns
+its keep; used as a buy list, it will systematically miss cyclical recoveries —
+by construction, not by accident.
