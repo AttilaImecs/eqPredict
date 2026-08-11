@@ -1279,3 +1279,92 @@ universe median) from every observation preserves rank order exactly, so
 Spearman cannot change. Genuine market-neutralisation needs within-sector
 ranking or a beta adjustment. The column is retained only because removing it
 silently would invite someone to re-derive it and reach the same dead end.
+
+---
+
+## 19. The full block matrix — `block_matrix.py`
+
+Nine quarterly score windows (2024-06 … 2026-06) against every forward block in
+3-month steps. `scores_asof_*.csv` for all nine are on disk.
+
+**Why nine and not more:** a true 3-year window needs 16 quarters, and the
+fundamentals only reach back to 2020-07. At window_end 2024-06, 2,332 tickers
+have 16 quarters; at 2024-03 that collapses to **6**. Earlier windows are
+possible only on the degraded 2-year basis, or after a deeper re-fetch.
+
+### Mean Spearman rho across windows (n_win in parentheses)
+
+| start \ end | 3m | 6m | 9m | 12m | 15m | 18m |
+|---|---|---|---|---|---|---|
+| **W+0** | +0.159 (8) | +0.192 (7) | **+0.208 (6)** | +0.194 (5) | +0.190 (4) | +0.216 (3) |
+| W+3 | | +0.128 (7) | +0.174 (6) | +0.173 (5) | +0.158 (4) | +0.181 (3) |
+| W+6 | | | +0.131 (6) | +0.149 (5) | +0.148 (4) | +0.156 (3) |
+| W+9 | | | | +0.082 (5) | +0.105 (4) | +0.134 (3) |
+| W+12 | | | | | +0.086 (4) | +0.139 (3) |
+| W+15 | | | | | | +0.123 (3) |
+
+**Read down any column: rho falls monotonically as entry is delayed.** Ending
+at W+18: +0.216 → +0.181 → +0.156 → +0.134 → +0.139 → +0.123. Every one of the
+five best blocks starts at W+0. Delayed recognition is not merely unsupported —
+the data points the other way, consistently, across every horizon.
+
+**Read across the W+0 row: longer is better, and flattens after ~9 months.**
+
+### The stability result matters more than the peak
+
+| block | mean rho | min | max | n_win |
+|---|---|---|---|---|
+| W+0 → W+3 | +0.159 | **+0.005** | +0.304 | 8 |
+| W+0 → W+6 | +0.192 | **+0.017** | +0.289 | 7 |
+| **W+0 → W+9** | **+0.208** | **+0.158** | +0.252 | 6 |
+| W+0 → W+12 | +0.194 | +0.132 | +0.245 | 5 |
+
+The 3-month block swings from +0.005 (useless) to +0.304 across windows —
+whether it works is close to a coin flip on entry date. **W+0 → W+9 never drops
+below +0.158.** Its worst case is better than the 3-month block's average. For
+a decision rule, that floor is worth more than a higher mean.
+
+**On this evidence: buy at window_end, hold ~9-12 months.**
+
+### The market-direction claim, corrected downward
+
+Section 18 reported rank correlation −0.810 between market direction and the
+score's edge, on 8 blocks. De-duplicated properly by calendar quarter, it is
+**−0.595**, and 2024-06 is a clear counterexample: the market rose 7.5% and rho
+was still +0.179.
+
+| quarter | market | rho |
+|---|---|---|
+| 2024-06 | +7.5% | +0.179 |
+| 2024-09 | +0.2% | +0.062 |
+| 2024-12 | −8.0% | +0.284 |
+| 2025-03 | +4.5% | +0.054 |
+| 2025-06 | +5.0% | −0.037 |
+| 2025-09 | −2.5% | +0.233 |
+| 2025-12 | −3.9% | +0.172 |
+| 2026-03 | +10.6% | +0.060 |
+
+Falling quarters mean +0.230, rising +0.064. The direction of the effect
+survives; the strength does not. Treat it as a tendency, not a rule.
+
+### THE STRUCTURAL LESSON FOR THE 2007 BACKTEST
+
+Going from 3 score windows to 9 produced **no new independent evidence for the
+quarterly test** — still 8 distinct calendar quarters. The nine windows overlap:
+W+3→W+6 measured from 2024-06 is the same three months of market history as
+W+0→W+3 from 2024-12.
+
+**The binding constraint is the SPAN of price history, not the number of score
+windows.** 36 block/window observations collapsed to 8 real quarters.
+
+So the 2007 analysis must extend the **data**, not slice the existing five
+years more finely:
+
+* `YEARS = 6` in `fetch_sec_fundamentals.py` sets the cutoff — raise it to
+  reach back to 2007;
+* `YEARS = 5` in `fetch_prices.py` likewise, and Yahoo will serve far more;
+* and the survivorship problem gets much worse over 18 years, since
+  `universe.csv` is today's membership. Companies that failed between 2007 and
+  now are simply absent, which is precisely the population a loser-avoidance
+  screen should be judged on. A point-in-time universe is the hard part of that
+  project, and no amount of extra price history substitutes for it.
