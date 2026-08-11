@@ -1101,3 +1101,68 @@ nulled the market cap only where P/S was computed, which is after the P/E
 reconciliation — so ASML still read a P/E of 68.4 and Kaspi 0.02, a USD market
 cap over tenge earnings. `test_scoring.py` asserts the ordering structurally,
 because it is not observable from the rules alone.
+
+---
+
+## 17. Does the score predict anything? — `validate_scores.py`
+
+`python3 validate_scores.py --min-confidence 0.6`
+
+Compares each window's score against the **forward** return from that date.
+Trailing return is not a test: momentum is 20% of the score and is built from
+trailing prices, so scoring against the past measures the score against its own
+input.
+
+| window | months fwd | n | Spearman rho | top decile | bottom decile | spread |
+|---|---|---|---|---|---|---|
+| 2024-12 | 20 | 2,148 | **+0.262** | +27.5% | −56.1% | 83.3 pts |
+| 2025-12 | 8 | 2,281 | **+0.255** | +15.1% | −26.7% | 41.8 pts |
+| 2026-06 | 2 | 2,300 | **+0.256** | +4.9% | −6.5% | 11.3 pts |
+
+Deciles are close to monotonic and the hit rate climbs steadily — share of
+companies with a positive return runs 29% in the bottom decile to 74% in the
+top over the 20-month window.
+
+### It is not just momentum
+
+Rebuilding the score from the five fundamental pillars with momentum removed:
+
+| window | full score | fundamentals only |
+|---|---|---|
+| 2024-12 | +0.262 | **+0.220** |
+| 2025-12 | +0.255 | **+0.207** |
+
+Momentum contributes, but roughly 80% of the signal survives without it.
+
+### Per-pillar rho — the growth pillar does nothing
+
+| pillar | 2024-12 | 2025-12 | 2026-06 |
+|---|---|---|---|
+| growth | **−0.014** | **+0.003** | **+0.042** |
+| profitability | +0.256 | +0.247 | +0.269 |
+| quality | +0.156 | +0.172 | +0.290 |
+| health | +0.116 | +0.090 | +0.042 |
+| valuation | +0.197 | +0.106 | +0.196 |
+| momentum | +0.268 | +0.289 | +0.009 |
+
+**Growth has no measurable relationship with forward return in any window** —
+20 of the 120 points are, on this evidence, noise. Profitability and quality
+carry the load. Momentum is strong at 8-20 months and worthless at 2, which is
+what momentum is generally understood to do.
+
+The scores were deliberately NOT re-tuned against these results. Fitting the
+rubric to the returns it is being tested on is overfitting, and the sample
+below does not support it.
+
+### What this evidence cannot bear
+
+* **The windows overlap.** 2024-12 → now fully contains 2025-12 → now. Three
+  results, not three independent observations.
+* **One regime**, and one that favoured loss-making biotech and net-cash
+  balance sheets.
+* **Survivorship.** `universe.csv` is index membership as of collection, so
+  companies delisted or acquired between T and now are absent. That flatters
+  the bottom decile most — the true spread is probably wider, and −56% is if
+  anything understated.
+* rho ≈ 0.25 is modest in absolute terms. It is a useful ranking, not a
+  forecast, and it says nothing about any individual company.
