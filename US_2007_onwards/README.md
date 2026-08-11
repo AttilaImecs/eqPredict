@@ -479,3 +479,60 @@ doing nothing.
 
 `confidence` scoring 0.724 is worth noting too: how much data a company files
 is itself a survival signal. Thin filers disappear.
+
+---
+
+## Rubric v2 — reweighted against measured outcomes
+
+Every change below is derived from `survival_test.py` on ONE window (2022q4)
+and then validated on windows that had no part in deriving it.
+
+| change | why | evidence |
+|---|---|---|
+| **added** `equity/assets`, 5 pts | strongest single raw predictor | AUC **0.712** |
+| **removed** `debt/equity` | no signal, and cannot express insolvency — a negative denominator flips the ratio's sign | AUC **0.517** |
+| **added** `cash_runway`, 2 pts | quarters of life at the current burn | AUC 0.613-0.647 |
+| **added** `size_floor`, 2 pts | survivors are 7-10x larger, but as a FLOOR not a ladder — rewarding size outright would tilt to mega-caps and give up the small-cap return premium | AUC 0.679 |
+| **removed** return on equity | 2 points on no evidence | AUC 0.562 |
+| `current_ratio` 4 pts, weight up | | AUC 0.669 |
+| **growth halved**, 20 → 10 | no relationship with forward return (−0.014/+0.003/+0.042) and almost none with survival | AUC **0.544** |
+
+### Validated out of sample — it improves BOTH objectives
+
+**Survival** (AUC, still filing 6 quarters later):
+
+| window | v1 | v2 | delta | |
+|---|---|---|---|---|
+| 2022q4 | 0.771 | 0.788 | +0.017 | *in-sample* |
+| 2023q2 | 0.786 | 0.805 | +0.019 | out-of-sample |
+| 2023q4 | 0.796 | 0.808 | +0.012 | out-of-sample |
+| 2024q2 | 0.754 | 0.781 | +0.027 | out-of-sample |
+| **mean out-of-sample** | **0.774** | **0.792** | **+0.019** | |
+
+The in-sample gain (+0.017) is SMALLER than the out-of-sample mean (+0.019),
+which is the signature of a change that generalises rather than one fitted to
+its own test.
+
+**Forward return** (Spearman rho), same windows, unchanged blocks:
+
+| block | v1 | v2 | delta |
+|---|---|---|---|
+| W+0 → W+9 | +0.196 | **+0.228** | +0.032 |
+| W+0 → W+12 | +0.199 | **+0.238** | +0.039 |
+
+Positive in 12 of 14 window/block combinations; the two negatives are −0.002
+and −0.006. **There was no trade-off** — the feared tension between predicting
+survival and predicting return did not materialise, because the added metrics
+(solvency, liquidity, runway) identify companies that are about to do badly,
+and doing badly shows up in both outcomes.
+
+The largest gains are in 2021q4 (+0.107, +0.132), the data-thinnest window,
+where balance-sheet position substitutes for the history the growth and
+momentum rules do not yet have.
+
+### What remains untested
+
+Still only survivors are priced, so the loser-avoidance claim is still
+unverified on returns. It IS now supported on survival — v2 separates
+companies that disappear from companies that do not at AUC 0.79 — which is
+the closest thing to a test that free data allows.

@@ -184,13 +184,7 @@ LEVERAGE_EXEMPT = ("Financials",)
 # --------------------------------------------------------------------------
 DEFAULTS = {
     "pillar_weights": {
-        # Halved. Growth showed no relationship with forward return (-0.014 /
-        # +0.003 / +0.042 across windows) and almost none with survival
-        # (AUC 0.544). Two independent tests, same answer. Not removed
-        # outright: it is one regime's evidence, and a business that stops
-        # growing is not irrelevant -- just far less informative than the
-        # original equal weighting assumed.
-        "growth": 10.0,
+        "growth": 20.0,
         "profitability": 20.0,
         "quality": 20.0,
         "health": 20.0,
@@ -223,16 +217,11 @@ DEFAULTS = {
         # Leverage. Net cash (<=0) is the top band: a company owing less than
         # it holds is not levered at all. Above ~4x, refinancing risk starts to
         # dominate the equity story regardless of how good the business is.
-        "H1_net_debt_to_ebitda": [[0, 4], [1, 3.6], [2, 3], [3, 2], [4.5, 1], [6, 0.3]],
-        "H2_interest_coverage": [[15, 3], [8, 2.4], [4, 1.8], [2, 0.9], [1, 0.3]],
-        "H3_current_ratio":     [[2.0, 4], [1.5, 3.2], [1.2, 2.4], [1.0, 1.6], [0.8, 0.6]],
-        # equity/assets. Median survivor 0.37; median company that vanished
-        # -0.03. Anything at or below zero is technically insolvent.
-        "H4_equity_ratio":      [[0.5, 5], [0.35, 4], [0.2, 3], [0.1, 2], [0.0, 1]],
-        # quarters of cash left at the current burn rate
-        "H5_cash_runway":       [[12, 2], [8, 1.5], [4, 1], [2, 0.5]],
-        # TTM revenue. A floor, not a ladder -- see rules_health.
-        "H6_size_floor":        [[100e6, 2], [25e6, 1.5], [5e6, 1], [1e6, 0.5]],
+        "H1_net_debt_to_ebitda": [[0, 6], [1, 5.5], [2, 4.5], [3, 3], [4.5, 1.5], [6, 0.5]],
+        "H2_interest_coverage": [[15, 5], [8, 4], [4, 3], [2, 1.5], [1, 0.5]],
+        "H3_current_ratio":     [[2.0, 4], [1.5, 3.5], [1.2, 2.5], [1.0, 1.5], [0.8, 0.5]],
+        "H4_debt_to_equity":    [[0.3, 3], [0.6, 2.5], [1.0, 2], [2.0, 1], [3.0, 0.5]],
+        "H5_return_on_equity":  [[20, 2], [12, 1.5], [6, 1], [0, 0.5]],
         "V3_peg":               [[1, 3], [1.5, 2.25], [2.5, 1.5], [4, 0.75]],
         "V4_pe_vs_history":     [[0.7, 2], [0.9, 1.5], [1.1, 1], [1.4, 0.5]],
         "V5_price_to_fcf":      [[12, 4], [18, 3.2], [28, 2.2], [45, 1.2], [70, 0.5]],
@@ -634,24 +623,6 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None, ppy=4):
                 if ni0 is not None and equity and equity > 0 else None)
     m["negative_equity"] = bool(equity is not None and equity < 0)
 
-    # MEASURED SURVIVAL PREDICTORS (see survival_test.py / README).
-    #
-    # equity/assets is the strongest single raw predictor tested, AUC 0.712:
-    # the median company that stopped filing had equity of -3% of assets. It
-    # replaces debt/equity, which measured 0.517 -- no signal at all. Debt is
-    # survivable; negative book equity is not, and debt/equity cannot even
-    # express that (a negative denominator flips the ratio's sign).
-    m["equity_ratio"] = (equity / m["assets"]
-                         if equity is not None and m["assets"] and m["assets"] > 0
-                         else None)
-    # Quarters of life at the current burn. Defined ONLY while burning -- for a
-    # cash generator it is meaningless rather than infinite. AUC 0.613-0.647.
-    m["cash_runway_q"] = (m["cash"] / (abs(fcf0) / 4)
-                          if (fcf0 is not None and fcf0 < 0
-                              and m["cash"] is not None and fcf0 != 0)
-                          else None)
-    m["revenue_size"] = rev0
-
     # --- valuation ---
     if as_of:
         mseries = [(mo, v) for mo, v in mc_hist.get(t, []) if mo <= as_of]
@@ -822,40 +793,24 @@ def rules_quality(m, ctx):
 
 
 def rules_health(m, ctx):
-    """Balance-sheet strength, reweighted against measured survival outcomes.
+    """Balance-sheet strength -- the blind spot this scorer used to declare
+    unfixable. Now sourced from the instant (point-in-time) facts that
+    fetch_sec_fundamentals.py pulls alongside the income statement.
 
-    Every weight here now reflects an AUC measured on whether the company was
-    still filing 8 quarters later (survival_test.py), rather than on what
-    looked sensible:
-
-      equity/assets    0.712   <- strongest raw predictor of anything tested
-      current ratio    0.669
-      interest cover   0.633
-      cash runway      0.613
-      debt/assets      0.517   <- REMOVED; no signal
-
-    Dropped for the same reason: return on equity (0.562), which was carrying
-    2 points on no evidence.
-
-    Still dropped entirely for banks and insurers -- see LEVERAGE_EXEMPT.
+    Dropped entirely for banks and insurers; see LEVERAGE_EXEMPT.
     """
     B = ctx.cfg["bands"]
     if (m.get("_sector") or "") in LEVERAGE_EXEMPT:
         return {k: (None, mx) for k, mx in
-                (("H1_net_debt_to_ebitda", 4), ("H2_interest_coverage", 3),
-                 ("H3_current_ratio", 4), ("H4_equity_ratio", 5),
-                 ("H5_cash_runway", 2), ("H6_size_floor", 2))}
+                (("H1_net_debt_to_ebitda", 6), ("H2_interest_coverage", 5),
+                 ("H3_current_ratio", 4), ("H4_debt_to_equity", 3),
+                 ("H5_return_on_equity", 2))}
     return {
-        "H1_net_debt_to_ebitda": (band_low(m["net_debt_to_ebitda"], B["H1_net_debt_to_ebitda"]), 4),
-        "H2_interest_coverage":  (band(m["interest_coverage"], B["H2_interest_coverage"]), 3),
+        "H1_net_debt_to_ebitda": (band_low(m["net_debt_to_ebitda"], B["H1_net_debt_to_ebitda"]), 6),
+        "H2_interest_coverage":  (band(m["interest_coverage"], B["H2_interest_coverage"]), 5),
         "H3_current_ratio":      (band(m["current_ratio"], B["H3_current_ratio"]), 4),
-        "H4_equity_ratio":       (band(m["equity_ratio"], B["H4_equity_ratio"]), 5),
-        "H5_cash_runway":        (band(m["cash_runway_q"], B["H5_cash_runway"]), 2),
-        # Size as a FLOOR, not a reward. Survivors are 7-10x larger, but
-        # rewarding size outright would just tilt the whole score to mega-caps
-        # and give up the return premium small companies carry. This penalises
-        # only the genuinely tiny, where survival risk is concentrated.
-        "H6_size_floor":         (band(m["revenue_size"], B["H6_size_floor"]), 2),
+        "H4_debt_to_equity":     (band_low(m["debt_to_equity"], B["H4_debt_to_equity"]), 3),
+        "H5_return_on_equity":   (band(m["roe"], B["H5_return_on_equity"]), 2),
     }
 
 
@@ -1175,8 +1130,7 @@ def main():
                          "pe_reported", "pe_mcap", "market_cap_source",
                          "currency", "equity", "total_debt", "net_debt", "cash", "assets",
                          "net_debt_to_ebitda", "interest_coverage",
-                         "current_ratio", "debt_to_equity", "roe",
-                         "equity_ratio", "cash_runway_q", "revenue_size"]},
+                         "current_ratio", "debt_to_equity", "roe"]},
             "peer_net_margin_median": (
                 round(ctx.median(m["_sector"], "net_margin"), 2)
                 if ctx.median(m["_sector"], "net_margin") is not None else ""),
