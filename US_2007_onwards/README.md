@@ -135,3 +135,73 @@ Options, in increasing order of honesty:
    problem they exist to solve.
 3. Restrict the backtest to a period and universe where coverage is near
    complete, and state the limitation rather than paper over it.
+
+---
+
+## Improvements made, and the scope they justify
+
+### (1) Pre-2019 parsing — improved, then hit diminishing returns
+
+Three changes, in the order they mattered:
+
+* **Load the older submission files.** `filings.recent` in the submissions API
+  holds only the last ~1,000 filings; everything older sits in
+  `filings.files[]` and must be fetched separately. Not doing so hid every
+  pre-2019 filing for an active filer — 10 of 70 validation companies returned
+  "no-annual-filing" for that reason alone. **This was the single biggest win.**
+* **Replaced `exchange-paren` with `item5` and `exchange-context`.** The old
+  strategy scored 0/2 by taking the first ticker-shaped word after any
+  parenthesis. The replacements anchor on Item 5 ("Market for Registrant's
+  Common Equity"), which is where pre-2019 filings actually name the ticker —
+  the cover-page "Trading Symbol" column did not exist until the 2019 rule.
+* **Read 2.5 MB of the document instead of 600 KB**, and fall back to the full
+  `{accession}.txt` submission when `primaryDocument` is empty, as it often is
+  for older filings.
+
+| | before | after |
+|---|---|---|
+| symbol found (pre-2019) | 54% | **60%** |
+| match rate | 76% | **81%** |
+
+Honest assessment: **short of the 70-80% recovery I predicted.** The remaining
+28 of 70 reach the document and match no pattern. Further regex work looked
+like poor value against the alternative of narrowing scope.
+
+### (2) Recovery depends sharply on WHEN a company stopped filing
+
+| last filed | population | recovered |
+|---|---|---|
+| 2018 | 59 | 58% |
+| 2019 | 46 | 50% |
+| **2020** | 38 | **83%** |
+| **2021** | 30 | **83%** |
+| **2022** | 43 | **83%** |
+| **2023** | 35 | **75%** |
+
+| cohort | recovered |
+|---|---|
+| ceased 2018-2020 | **64%** |
+| ceased 2021+ | **81%** |
+
+The break sits exactly where the 2019 cover-page rule starts showing up in
+filings, which put `dei:TradingSymbol` in the XBRL.
+
+### (3) Scope decision: start the backtest at 2020, not 2007
+
+**2007 is not reachable and 2018 is not defensible.** At ~50-58% recovery for
+companies that stopped filing in 2018-2019, half the failures are unpriceable,
+and the recovered half is not a random sample of them — a company wound down
+quietly leaves thinner filings than one acquired at a premium, so what survives
+recovery skews toward better outcomes. A backtest there would be biased in a
+way that looks complete.
+
+**From 2020 the picture holds up:** ~83% of ceased filers recoverable, on top of
+92-98% quarterly fundamentals coverage and full DERA point-in-time universes.
+
+The residual limitation, to be stated in any result rather than buried:
+**roughly one delisted company in five still cannot be priced even from 2020**,
+and those are more likely to be the quiet failures than the clean exits.
+
+A 2020-2026 point-in-time backtest is ~6 years and 24 quarters — against the 8
+distinct quarters the current analysis rests on, a threefold improvement with
+survivorship largely, though not entirely, addressed.

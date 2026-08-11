@@ -145,20 +145,59 @@ def strategy_cover_table(text):
     return None
 
 
-def strategy_exchange_paren(text):
-    """`(NASDAQ: ABCD)` / `(NYSE: ABCD)` and friends."""
-    m = re.search(r"\((?:NASDAQ|NYSE|NYSE\s*American|AMEX|OTCQB|OTCQX|NYSE\s*MKT)"
-                  r"[^)]{0,20}?[:\s]\s*(" + TICKER_RE + r")\s*\)", text, re.I)
-    return plausible(m.group(1)) if m else None
+def strategy_item5(text):
+    """Item 5, "Market for Registrant's Common Equity".
+
+    THE STRATEGY THAT MATTERS FOR PRE-2019 FILINGS. The cover-page "Trading
+    Symbol" column did not exist until the 2019 cover-page rule, so for older
+    filings the ticker is not on the cover at all -- it is in the body, in the
+    market-information section, phrased as prose. Anchoring on that section
+    first avoids matching the word "symbol" somewhere in a footnote.
+    """
+    m = re.search(r"Market\s+for\s+(?:the\s+)?Registrant.{0,60}?Common\s+(?:Equity|Stock)",
+                  text, re.I)
+    window = text[m.start():m.start() + 4000] if m else text
+    pats = [
+        r"(?:under|with)\s+the\s+(?:trading\s+|ticker\s+)?symbols?\s*[:\s]*[\"\u201c']\s*(" + TICKER_RE + r")\s*[\"\u201d']",
+        r"(?:under|with)\s+the\s+(?:trading\s+|ticker\s+)?symbols?\s*[:\s]+(" + TICKER_RE + r")\b",
+        r"(?:ticker|trading)\s+symbols?\s*[:\s]*[\"\u201c']?\s*(" + TICKER_RE + r")\b",
+        r"symbols?\s*[:\s]*[\"\u201c]\s*(" + TICKER_RE + r")\s*[\"\u201d]",
+    ]
+    for pat in pats:
+        for mm in re.finditer(pat, window, re.I):
+            v = plausible(mm.group(1))
+            if v and len(v) >= 2:
+                return v
+    return None
+
+
+def strategy_exchange_context(text):
+    """A symbol stated beside an exchange name, in either order.
+
+    Replaces the old `exchange-paren`, which scored 0/2 in validation by
+    matching the first ticker-shaped word after any parenthesis. This requires
+    the exchange name and the symbol to sit within a few words of each other
+    AND the word "symbol" to be present, which is what made the difference.
+    """
+    pat = (r"(?:NASDAQ|New\s+York\s+Stock\s+Exchange|NYSE(?:\s+American|\s+MKT)?|"
+           r"AMEX|OTCQB|OTCQX)[^.]{0,80}?symbols?[\s:]*[\"\u201c']?\s*("
+           + TICKER_RE + r")\b")
+    m = re.search(pat, text, re.I)
+    if m:
+        v = plausible(m.group(1))
+        if v and len(v) >= 2:
+            return v
+    return None
 
 
 def strategy_quoted_symbol(text):
-    """`under the symbol "ABCD"` -- loosest, so it runs last."""
-    m = re.search(r"symbol[\s:]*[\"“]\s*(" + TICKER_RE + r")\s*[\"”]", text, re.I)
+    """`under the symbol "ABCD"` anywhere in the document -- loosest, so last."""
+    m = re.search(r"symbol[\s:]*[\"\u201c]\s*(" + TICKER_RE + r")\s*[\"\u201d]", text, re.I)
     if m:
-        return plausible(m.group(1))
-    m = re.search(r"symbol[\s:]+(" + TICKER_RE + r")\b", text, re.I)
-    return plausible(m.group(1)) if m else None
+        v = plausible(m.group(1))
+        if v and len(v) >= 2:
+            return v
+    return None
 
 
 def recover(cik, want_forms=("10-K", "10-Q", "20-F", "40-F"), before=None):
@@ -168,10 +207,28 @@ def recover(cik, want_forms=("10-K", "10-Q", "20-F", "40-F"), before=None):
     except Exception as e:
         return None, "submissions-fail"
     rec = sub.get("filings", {}).get("recent", {})
-    forms = rec.get("form", [])
-    accs = rec.get("accessionNumber", [])
-    docs = rec.get("primaryDocument", [])
-    dates = rec.get("filingDate", [])
+    forms = list(rec.get("form", []))
+    accs = list(rec.get("accessionNumber", []))
+    docs = list(rec.get("primaryDocument", []))
+    dates = list(rec.get("filingDate", []))
+
+    # `recent` holds only the most recent ~1000 filings. Everything older sits
+    # in filings.files[], as separate JSON documents that must be fetched
+    # explicitly. Skipping them silently hid every pre-2019 filing for an
+    # active filer -- 10 of 70 companies in validation returned
+    # "no-annual-filing" for that reason alone, not because none existed.
+    if before and not any(f in want_forms and d < before
+                          for f, d in zip(forms, dates)):
+        for extra in sub.get("filings", {}).get("files", []):
+            try:
+                old = json.loads(get("https://data.sec.gov/submissions/"
+                                     + extra["name"]))
+            except Exception:
+                continue
+            forms += old.get("form", [])
+            accs += old.get("accessionNumber", [])
+            docs += old.get("primaryDocument", [])
+            dates += old.get("filingDate", [])
     idxs = [i for i, f in enumerate(forms)
             if f in want_forms and (not before or (i < len(dates) and dates[i] < before))][:3]
     if not idxs:
@@ -190,14 +247,29 @@ def recover(cik, want_forms=("10-K", "10-Q", "20-F", "40-F"), before=None):
             if s:
                 return s, "xbrl-instance"
         if not docs[i]:
+            # Old filings often have no primaryDocument. The full submission
+            # text file is always present at {accession}.txt.
+            try:
+                raw = get(ARCH.format(int(cik), f"{acc}/{accs[i]}.txt"))[:2500000]
+            except Exception:
+                continue
+            text = _flatten(raw)
+            for fn, nm in ((strategy_cover_table, "cover-table"),
+                           (strategy_item5, "item5"),
+                           (strategy_exchange_context, "exchange-context"),
+                           (strategy_quoted_symbol, "quoted-symbol")):
+                sy = fn(text)
+                if sy:
+                    return sy, nm + "-txt"
             continue
         try:
-            html = get(ARCH.format(int(cik), f"{acc}/{docs[i]}"))[:600000]
+            html = get(ARCH.format(int(cik), f"{acc}/{docs[i]}"))[:2500000]
         except Exception:
             continue
         text = _flatten(html)
         for fn, nm in ((strategy_cover_table, "cover-table"),
-                       (strategy_exchange_paren, "exchange-paren"),
+                       (strategy_item5, "item5"),
+                       (strategy_exchange_context, "exchange-context"),
                        (strategy_quoted_symbol, "quoted-symbol")):
             s = fn(text)
             if s:
