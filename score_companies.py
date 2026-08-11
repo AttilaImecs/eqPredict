@@ -570,6 +570,14 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None, ppy=4):
     m["fcf_conversion"] = (fcf0 / ni0 * 100
                            if fcf0 is not None and ni0 is not None and ni0 > 0 else None)
 
+    # Reporting currency. Prices and market cap are USD; the financials are
+    # as filed. Any multiple that divides one by the other is meaningless for
+    # a non-USD reporter -- P/S would be a USD market cap over EUR revenue --
+    # so those rules are dropped rather than scored on a mixed-currency
+    # number. 75 tickers are affected, mostly the IFRS filers.
+    m["currency"] = (qs[-1].get("currency") or "").strip().upper()
+    m["non_usd"] = bool(m["currency"] and m["currency"] != "USD")
+
     # --- balance sheet ---
     # These are INSTANT facts: a position at the latest period end, not a sum
     # over the window. Taking the most recent quarter that reports each one,
@@ -625,6 +633,17 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None, ppy=4):
         mc = num(snap["market_cap"]) if snap else None
         reported_pe = num(snap["pe_trailing"]) if snap else None
         m["valuation_basis"] = "snapshot"
+    # CURRENCY GATE -- must run BEFORE any multiple is derived.
+    #
+    # Prices and market cap are USD; the financials are as filed. Every
+    # multiple that divides one by the other is meaningless for a non-USD
+    # reporter: ASML read a P/E of 68.4 and Kaspi 0.02 (a USD market cap over
+    # tenge earnings) when this guard ran too late and only caught P/S.
+    # Nulling both inputs here drops P/E, P/S and P/FCF together.
+    if m["non_usd"]:
+        mc = None
+        reported_pe = None
+
     m["market_cap"] = mc
 
     # ------------------------------------------------------------------
@@ -951,6 +970,8 @@ def flags(m, pillars):
         f.append("leverage_not_applicable")
     if m.get("negative_equity"):
         f.append("negative_equity")
+    if m.get("non_usd"):
+        f.append("non_usd_reporting")
     if m.get("net_debt_to_ebitda") is not None and m["net_debt_to_ebitda"] > 5:
         f.append("high_leverage")
     if (m.get("interest_coverage") is not None and m["interest_coverage"] < 1.5
@@ -1104,7 +1125,7 @@ def main():
                          "volatility", "dollar_volume", "market_cap",
                          "fcf_ttm", "fcf_margin", "fcf_conversion", "p_fcf",
                          "pe_reported", "pe_mcap", "market_cap_source",
-                         "equity", "total_debt", "net_debt", "cash", "assets",
+                         "currency", "equity", "total_debt", "net_debt", "cash", "assets",
                          "net_debt_to_ebitda", "interest_coverage",
                          "current_ratio", "debt_to_equity", "roe"]},
             "peer_net_margin_median": (

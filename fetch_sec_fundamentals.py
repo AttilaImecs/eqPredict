@@ -152,6 +152,103 @@ ADDITIVE = ("revenue", "gross_profit", "ebit", "net_income", "eps_diluted",
 CASHFLOW_YTD = ("dep_amort", "ocf", "capex")
 
 # --------------------------------------------------------------------------
+# IFRS -- a SECOND taxonomy, not a variant of the first.
+#
+# Foreign private issuers reporting under IFRS file into facts["ifrs-full"],
+# and build_rows() only ever read facts["us-gaap"]. They came back "empty (no
+# XBRL)" while holding complete financials: Thomson Reuters tags 398 IFRS
+# concepts, ProQR 203, Lanvin 156. Roughly 133 companies were invisible for
+# that reason alone.
+#
+# The concept names are different, not merely spelled differently -- IFRS has
+# `ProfitLoss` where US-GAAP has `NetIncomeLoss`, and
+# `CashFlowsFromUsedInOperatingActivities` where US-GAAP has
+# `NetCashProvidedByUsedInOperatingActivities`. Note the British spelling in
+# `DepreciationAndAmortisationExpense`; getting it wrong fails silently.
+#
+# Frequencies in the comments are how many of a 5-filer sample tagged each one,
+# which is why the lists are ordered the way they are.
+# --------------------------------------------------------------------------
+IFRS_CONCEPTS = {
+    "revenue": [
+        "Revenue",                                    # 4/5
+        "RevenueFromContractsWithCustomers",          # 1/5
+        "RevenueFromSaleOfGoods",
+        "RevenueFromRenderingOfServices",
+    ],
+    "gross_profit": ["GrossProfit"],                  # 2/5
+    "ebit": [
+        "ProfitLossFromOperatingActivities",          # 4/5
+        "OperatingIncomeLoss",
+    ],
+    "net_income": [
+        "ProfitLoss",                                 # 5/5
+        "ProfitLossAttributableToOwnersOfParent",     # 4/5
+    ],
+    "eps_diluted": ["DilutedEarningsLossPerShare"],   # 4/5
+    "dep_amort": [
+        "DepreciationAndAmortisationExpense",         # British spelling
+        "DepreciationAmortisationAndImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss",
+        "DepreciationExpense",
+    ],
+    "ocf": ["CashFlowsFromUsedInOperatingActivities"],            # 5/5
+    "interest_expense": ["FinanceCosts", "InterestExpense"],      # 3/5
+    "capex": [
+        "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",  # 3/5
+        "PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities",
+    ],
+}
+
+IFRS_BALANCE_CONCEPTS = {
+    "cash": ["CashAndCashEquivalents"],                           # 5/5
+    "short_term_investments": [
+        "OtherCurrentFinancialAssets", "CurrentInvestments"],
+    "debt_lt": [
+        "NoncurrentPortionOfNoncurrentBorrowings", "LongtermBorrowings",
+        "BorrowingsNoncurrent", "NoncurrentLeaseLiabilities"],
+    "debt_st": [
+        "ShorttermBorrowings", "CurrentPortionOfNoncurrentBorrowings",
+        "BorrowingsCurrent", "CurrentLeaseLiabilities"],
+    "debt_total_tag": ["Borrowings"],
+    "equity": [
+        "Equity",                                                 # 5/5
+        "EquityAttributableToOwnersOfParent"],
+    "assets": ["Assets"],                                         # 5/5
+    "liabilities": ["Liabilities"],                               # 5/5
+    "current_assets": ["CurrentAssets"],                          # 5/5
+    "current_liabilities": ["CurrentLiabilities"],                # 5/5
+}
+
+# Concepts used to decide WHICH taxonomy a filer is really using. Counting
+# matched concepts beats "is us-gaap non-empty": several filers carry a
+# vestigial us-gaap namespace with 1-35 concepts alongside a complete IFRS one,
+# and picking by presence would take the empty half.
+_NS_PROBE = ("revenue", "net_income", "assets", "equity", "ocf")
+
+
+def pick_taxonomy(allfacts):
+    """(facts dict, income concepts, balance concepts, name) for this filer."""
+    def score(ns, cmap, bmap):
+        hits = 0
+        for f in _NS_PROBE:
+            for c in list(cmap.get(f, [])) + list(bmap.get(f, [])):
+                if c in ns:
+                    hits += 1
+                    break
+        return hits
+
+    us = allfacts.get("us-gaap") or {}
+    ifrs = allfacts.get("ifrs-full") or {}
+    us_score = score(us, CONCEPTS, BALANCE_CONCEPTS)
+    ifrs_score = score(ifrs, IFRS_CONCEPTS, IFRS_BALANCE_CONCEPTS)
+    # Ties go to US-GAAP: it is the better-tested path and extract_revenue's
+    # bank/lessor/excise rules only exist there.
+    if ifrs_score > us_score:
+        return ifrs, IFRS_CONCEPTS, IFRS_BALANCE_CONCEPTS, "ifrs-full"
+    return us, CONCEPTS, BALANCE_CONCEPTS, "us-gaap"
+
+
+# --------------------------------------------------------------------------
 # BALANCE SHEET -- INSTANT facts, NOT durational.
 #
 # These carry an `end` and no `start`: they are a position at a moment, not a
@@ -783,7 +880,7 @@ def shares_outstanding(facts):
 
 
 def build_rows(ticker, meta, facts, cutoff: date):
-    usgaap = (facts.get("facts") or {}).get("us-gaap") or {}
+    usgaap, concept_map, balance_map, taxonomy = pick_taxonomy(facts.get("facts") or {})
     if not usgaap:
         return []
 
@@ -791,9 +888,16 @@ def build_rows(ticker, meta, facts, cutoff: date):
     q4_flags = defaultdict(bool)
     annual_periods = set()
 
-    for field, candidates in CONCEPTS.items():
-        if field == "revenue":
+    for field, candidates in concept_map.items():
+        # extract_revenue()'s bank / lessor / excise rules are written against
+        # US-GAAP tag names and mean nothing under IFRS, where the candidates
+        # are plain alternatives. merge="max" gives the same total-beats-
+        # component behaviour without the taxonomy-specific special cases.
+        if field == "revenue" and taxonomy == "us-gaap":
             q, a, unit, derived = extract_revenue(usgaap, cutoff)
+        elif field == "revenue":
+            q, a, unit, derived = extract_series(
+                usgaap, candidates, cutoff, additive=True, merge="max")
         else:
             q, a, unit, derived = extract_series(
                 usgaap, candidates, cutoff,
@@ -810,7 +914,7 @@ def build_rows(ticker, meta, facts, cutoff: date):
 
     # Balance sheet: instant facts, keyed by end date only.
     balance = {}
-    for field, candidates in BALANCE_CONCEPTS.items():
+    for field, candidates in balance_map.items():
         vals, _u = extract_instant(usgaap, candidates, cutoff)
         balance[field] = vals
 
@@ -938,6 +1042,7 @@ def build_rows(ticker, meta, facts, cutoff: date):
             "period_type": "Q",
             "q4_derived": bool(q4_flags.get(end, False)),
             "source": "SEC XBRL",
+            "taxonomy": taxonomy,
         })
 
     # drop rows that carry no financial content at all
@@ -947,7 +1052,8 @@ def build_rows(ticker, meta, facts, cutoff: date):
 
     rows = drop_impossible_revenue(rows, annual_series.get("revenue", {}), fiscal_years)
     rows = collapse_near_duplicates(rows)
-    rows += annual_only_rows(ticker, meta, annual_series, units, rows, cutoff, balance)
+    rows += annual_only_rows(ticker, meta, annual_series, units, rows, cutoff,
+                             balance, taxonomy)
     return rows
 
 
@@ -1044,7 +1150,7 @@ def _merge_group(group, fields):
 
 
 def annual_only_rows(ticker, meta, annual_series, units, quarterly_rows, cutoff,
-                     balance=None):
+                     balance=None, taxonomy="us-gaap"):
     """
     Emit a full-year row for any fiscal year with NO quarterly coverage.
 
@@ -1130,6 +1236,7 @@ def annual_only_rows(ticker, meta, annual_series, units, quarterly_rows, cutoff,
             "period_type": "FY",
             "q4_derived": False,
             "source": "SEC XBRL",
+            "taxonomy": taxonomy,
         })
     return out
 
@@ -1179,7 +1286,7 @@ COLUMNS = [
     "assets", "liabilities", "current_assets", "current_liabilities",
     "gross_margin_pct", "ebit_margin_pct", "ebitda_margin_pct", "net_margin_pct",
     "fcf_margin_pct",
-    "period_start", "period_type", "q4_derived", "source",
+    "period_start", "period_type", "q4_derived", "source", "taxonomy",
 ]
 
 

@@ -1032,3 +1032,72 @@ Of the rest: 4 of 20 have no facts at all, 5 have a us-gaap namespace with
 Closing this needs an IFRS concept map (`Revenue`, `ProfitLoss`, `Assets`,
 `Equity`, `CashAndCashEquivalents`, …) alongside the existing US-GAAP one. It
 would take coverage from 84% to roughly 87-88%.
+
+---
+
+## 16. IFRS support — a second taxonomy, not a variant of the first
+
+`build_rows()` read only `facts["us-gaap"]`, so foreign private issuers
+reporting under IFRS came back **"empty (no XBRL)"** while holding complete
+financials. Sampling the 267 that returned nothing, **10 of 20 filed under
+`facts["ifrs-full"]`**: Thomson Reuters tags 398 IFRS concepts, ProQR 203,
+Lanvin 156, UROY 124. Roughly 133 companies were invisible for that reason.
+
+The concept names are genuinely different, not merely spelled differently:
+
+| | US-GAAP | IFRS |
+|---|---|---|
+| net income | `NetIncomeLoss` | `ProfitLoss` |
+| operating income | `OperatingIncomeLoss` | `ProfitLossFromOperatingActivities` |
+| operating cash flow | `NetCashProvidedByUsedInOperatingActivities` | `CashFlowsFromUsedInOperatingActivities` |
+| equity | `StockholdersEquity` | `Equity` |
+| D&A | `DepreciationDepletionAndAmortization` | `DepreciationAndAmortisation**Expense**` |
+
+Note the British spelling. Getting it wrong fails **silently** — the column is
+just blank — which is why there is a test pinning it.
+
+### Choosing the taxonomy by matched concepts, not by presence
+
+`pick_taxonomy()` counts how many probe concepts (revenue, net income, assets,
+equity, OCF) each namespace actually carries and takes the winner. Selecting on
+"is us-gaap non-empty" would be wrong: several filers carry a **vestigial**
+us-gaap namespace of 1-35 concepts beside a complete IFRS one, and presence
+would pick the empty half — exactly the old behaviour. Ties go to US-GAAP,
+because `extract_revenue()`'s bank / lessor / excise rules only exist there.
+
+A `taxonomy` column records which path produced each row.
+
+Verified: Thomson Reuters $6,786M revenue / $17,966M assets, ProQR in **EUR**,
+UROY in **CAD** — figures are in the filing currency and are NOT FX-converted,
+same caveat as always. AAPL and KO are unchanged on us-gaap, so the fallback
+did not disturb the existing path.
+
+`test_pipeline.py` covers it: pure-US, pure-IFRS, the vestigial-namespace case,
+tie-breaking, the British spelling, and an invariant that both concept maps
+cover the same field set (a field in one and not the other silently blanks that
+column for every filer on the other taxonomy). Mutation-tested 4/4.
+
+### Result, and the currency bug IFRS exposed
+
+| | before IFRS | after |
+|---|---|---|
+| Tickers with data | 3,450 | **3,618** (97% of universe with a CIK) |
+| Companies scored | 3,121 | **3,246** (87%) |
+| Annual-basis | 305 | **409** |
+| Failed in the fetch | — | **0** |
+
+**IFRS filers are disproportionately non-USD**, and that broke valuation.
+Prices and market cap are USD; the financials are as filed. A P/S computed as
+a USD market cap over EUR revenue is meaningless, and **75 tickers report in a
+non-USD currency** (CAD 32, EUR 18, BRL 6, AUD 4, CNY 3, …).
+
+`compute()` now gates on currency and drops P/E, P/S and P/FCF together for
+those filers, flagging `non_usd_reporting`; the valuation pillar drops and the
+total renormalises over five. Margins, growth and every ratio are unaffected —
+they are currency-neutral.
+
+**The gate has to run BEFORE any multiple is derived.** The first attempt
+nulled the market cap only where P/S was computed, which is after the P/E
+reconciliation — so ASML still read a P/E of 68.4 and Kaspi 0.02, a USD market
+cap over tenge earnings. `test_scoring.py` asserts the ordering structurally,
+because it is not observable from the rules alone.

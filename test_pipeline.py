@@ -158,6 +158,68 @@ class TestFailureCheckpointing(unittest.TestCase):
 
 
 @unittest.skipUnless(HAVE_DEPS, "needs pandas")
+class TestTaxonomySelection(unittest.TestCase):
+    """IFRS filers were invisible: build_rows() only read facts['us-gaap'],
+    so ~133 companies with complete financials came back 'empty (no XBRL)'."""
+
+    def _facts(self, us=(), ifrs=()):
+        return {"us-gaap": {c: {} for c in us}, "ifrs-full": {c: {} for c in ifrs}}
+
+    def test_pure_us_gaap_filer(self):
+        import fetch_sec_fundamentals as fs
+        f = self._facts(us=["Revenues", "NetIncomeLoss", "Assets",
+                            "StockholdersEquity",
+                            "NetCashProvidedByUsedInOperatingActivities"])
+        _, _, _, name = fs.pick_taxonomy(f)
+        self.assertEqual(name, "us-gaap")
+
+    def test_pure_ifrs_filer(self):
+        import fetch_sec_fundamentals as fs
+        f = self._facts(ifrs=["Revenue", "ProfitLoss", "Assets", "Equity",
+                              "CashFlowsFromUsedInOperatingActivities"])
+        _, _, _, name = fs.pick_taxonomy(f)
+        self.assertEqual(name, "ifrs-full")
+
+    def test_vestigial_us_gaap_does_not_win(self):
+        """THE CASE THAT MATTERS. Several filers carry a near-empty us-gaap
+        namespace beside a complete IFRS one. Selecting on presence rather than
+        on matched concepts would pick the empty half and return nothing --
+        which is precisely the old behaviour."""
+        import fetch_sec_fundamentals as fs
+        f = self._facts(us=["EntityCommonStockSharesOutstanding"],
+                        ifrs=["Revenue", "ProfitLoss", "Assets", "Equity",
+                              "CashFlowsFromUsedInOperatingActivities"])
+        _, _, _, name = fs.pick_taxonomy(f)
+        self.assertEqual(name, "ifrs-full")
+
+    def test_tie_goes_to_us_gaap(self):
+        """extract_revenue()'s bank/lessor/excise rules only exist for
+        US-GAAP, so it is the better-tested path when both look equal."""
+        import fetch_sec_fundamentals as fs
+        f = self._facts(us=["Revenues"], ifrs=["Revenue"])
+        _, _, _, name = fs.pick_taxonomy(f)
+        self.assertEqual(name, "us-gaap")
+
+    def test_no_facts_at_all(self):
+        import fetch_sec_fundamentals as fs
+        ns, _, _, _ = fs.pick_taxonomy({})
+        self.assertEqual(ns, {})
+
+    def test_british_spelling_is_present(self):
+        """IFRS spells it Amortisation. A silent miss, not an error."""
+        import fetch_sec_fundamentals as fs
+        self.assertIn("DepreciationAndAmortisationExpense",
+                      fs.IFRS_CONCEPTS["dep_amort"])
+
+    def test_ifrs_maps_cover_every_us_gaap_field(self):
+        """A field present in one map and missing from the other silently
+        blanks that column for every filer on the other taxonomy."""
+        import fetch_sec_fundamentals as fs
+        self.assertEqual(set(fs.CONCEPTS), set(fs.IFRS_CONCEPTS))
+        self.assertEqual(set(fs.BALANCE_CONCEPTS), set(fs.IFRS_BALANCE_CONCEPTS))
+
+
+@unittest.skipUnless(HAVE_DEPS, "needs pandas")
 class TestBalanceSheetIsNotSummed(unittest.TestCase):
     def test_balance_items_excluded_from_annual_additive(self):
         """Adding a balance-sheet item to ANNUAL_ADDITIVE would silently

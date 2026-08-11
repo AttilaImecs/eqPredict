@@ -376,6 +376,42 @@ class TestAnnualBasis(unittest.TestCase):
                         "an annual filer must not need 8 years of history")
 
 
+class TestCurrencyGate(unittest.TestCase):
+    """Prices and market cap are USD; financials are as filed."""
+
+    def setUp(self):
+        self.ctx = sc.PeerContext({}, {}, sc.DEFAULTS)
+
+    def m(self, **kw):
+        b = Blank(_sector="X", pos_ttm=0, pos_ttm_known=0)
+        b.update(kw)
+        return b
+
+    def test_non_usd_reporter_gets_no_multiples(self):
+        """A USD market cap over EUR revenue is not a P/S. The guard has to
+        run BEFORE any multiple is derived -- an earlier version nulled the
+        market cap only for P/S and let P/E through, so ASML read 68.4 and
+        Kaspi 0.02 off a USD cap over tenge earnings."""
+        r = sc.rules_valuation(self.m(pe=None, ps=None, p_fcf=None, peg=None,
+                                      pe_vs_own=None), self.ctx)
+        self.assertTrue(all(v is None for k, v in
+                            ((k, v) for k, (v, _) in r.items())
+                            if k in ("V1_pe_vs_peers", "V2_ps_vs_peers",
+                                     "V5_price_to_fcf")))
+
+    def test_flag_is_raised(self):
+        self.assertIn("non_usd_reporting", sc.flags(self.m(non_usd=True), {}))
+        self.assertNotIn("non_usd_reporting", sc.flags(self.m(non_usd=False), {}))
+
+    def test_guard_precedes_pe_reconciliation_in_source(self):
+        """Ordering is the whole bug, and it is not observable from the rules
+        alone -- assert it structurally."""
+        src = open("score_companies.py").read()
+        gate = src.index("CURRENCY GATE")
+        pe = src.index("P/E: TWO INDEPENDENT ESTIMATES")
+        self.assertLess(gate, pe, "currency gate must run before P/E is derived")
+
+
 class TestConfig(unittest.TestCase):
     def test_deep_merge_leaves_siblings_alone(self):
         cfg = sc.deep_merge(sc.DEFAULTS, {"pillar_weights": {"valuation": 30.0}})
