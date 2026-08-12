@@ -668,3 +668,52 @@ lost ~30-46 points to a simple universe median through the COVID rebound.
 Median +19.5% against a universe median of +8.8% — an excess of +10.7 points,
 with 15 of 20 positive. One quarter, so read it as an illustration and not as
 evidence.
+
+---
+
+## Why the top-20 list fails when it fails
+
+600 individual picks with 12-month returns (`top20_tickers_12m.csv`): 367 beat
+the universe, 233 did not. At quarter level, 23 of 30 won, with an average win
+of +19.6 points and an average loss of −19.8 — **symmetric in size, lopsided in
+frequency**.
+
+### It is one factor, and it is the market
+
+| following year | picks | win rate | median excess |
+|---|---|---|---|
+| universe **fell** | 220 | 67% | **+12.6** |
+| universe +0-15% | 280 | 65% | **+17.4** |
+| universe **rose >15%** | 100 | **38%** | **−13.7** |
+
+Six of the seven losing quarters are 2018q1-q3, 2019q4 and 2020q1-q3 — the
+run-up into 2018 and the COVID melt-up. **Every loss clusters in a strong
+market.** The screen is structurally short the beaten-down cyclicals that lead
+a rally, so it gives back in a melt-up roughly what it earns in calmer periods.
+
+### What is NOT the pattern — four hypotheses that died
+
+| dimension | result |
+|---|---|
+| rank within the top 20 | 57% / 67% / 62% / 59% for ranks 1-5 / 6-10 / 11-15 / 16-20 |
+| flags on the pick | flagged 62%, unflagged 62% |
+| health pillar score | 19-20 wins 59%, 16-19 wins 66% — no gradient |
+| market cap | $1-10bn 61%, >$10bn 64% |
+
+**Rank #1 is no better than rank #15.** Concentrating the list buys nothing,
+which is the same "cannot pick winners" finding in yet another form — the score
+identifies a good cohort but cannot order within it.
+
+### The one company-level signal
+
+| sector | picks | win rate | median excess |
+|---|---|---|---|
+| Consumer Discretionary | 47 | 74% | +16.0 |
+| Materials | 43 | 65% | +23.5 |
+| Information Technology | 142 | 65% | +14.7 |
+| Industrials | 114 | 64% | +9.5 |
+| **Health Care** | **113** | **48%** | **−3.0** |
+
+Health Care is the weak spot and it is a large share of the picks — the
+net-cash biotechs that max the health pillar. Half of them underperform. Worth
+either a sector cap or extra scrutiny before acting on a Health Care pick.
