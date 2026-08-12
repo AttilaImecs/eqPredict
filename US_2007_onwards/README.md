@@ -605,3 +605,66 @@ The score is a **regime-dependent quality screen**. It works in ordinary and
 falling markets and it works against you in a sharp recovery. Anyone using it
 needs to know which of those they are in — and that is not something the score
 itself can tell them.
+
+---
+
+## Top 20 per quarter — `top20_report.py`
+
+660 picks across 33 quarters, with forward returns at 3, 6 and 12 months, in
+`top20_by_quarter.csv`. Every return is shown beside the **median of the
+universe it was drawn from** over the identical months, because +8% means
+nothing until you know whether the alternative was +12%.
+
+### The concentrated selection does considerably better than rho implied
+
+| horizon | beat the universe | mean excess | median excess |
+|---|---|---|---|
+| +3m | **23 of 33 (70%)** | +2.5 pts | +2.2 pts |
+| +6m | 21 of 32 (66%) | +5.7 pts | +6.4 pts |
+| **+12m** | **23 of 30 (77%)** | **+10.4 pts** | **+13.1 pts** |
+
+This looks inconsistent with an overall rho of +0.145, and is not. Rho scores
+the WHOLE ranking, where the noisy middle and the lottery-ticket bottom
+dominate: decile 1 has a median of −28% and a mean of +104%, and no rank
+statistic handles that gracefully. Taking only the top 20 discards all of it.
+**The score is far better at identifying a small, good cohort than at ordering
+4,000 companies**, and the two questions have different answers.
+
+### Where it fails is unchanged, and now unmistakable
+
+| quarter | excess +3m | excess +12m | |
+|---|---|---|---|
+| 2020q1 | +0.5 | **−46.1** | COVID rebound |
+| 2020q2 | −4.2 | **−23.4** | |
+| 2020q3 | **−22.6** | **−29.3** | |
+
+Against the best stretch:
+
+| quarter | excess +12m |
+|---|---|
+| 2023q1 | **+48.4** |
+| 2023q3 | **+45.9** |
+| 2022q3 | **+40.2** |
+
+A swing of roughly 90 points between the worst and best years. **The top-20
+list is not a portfolio you can hold blindly through a regime change** — it
+lost ~30-46 points to a simple universe median through the COVID rebound.
+
+### Top 20 as at 2026-03 (latest, forward returns still accruing)
+
+| # | ticker | company | score | +3m |
+|---|---|---|---|---|
+| 1 | MNST | Monster Beverage | 90.0 | +33% |
+| 2 | INCY | Incyte | 89.1 | +20% |
+| 3 | AUPH | Aurinia Pharmaceuticals | 86.9 | +15% |
+| 4 | KLAC | KLA Corp | 86.6 | **+105%** |
+| 5 | TR | Tootsie Roll | 85.6 | −7% |
+| 6 | SEZL | Sezzle | 85.4 | **+171%** |
+| 7 | EXEL | Exelixis | 85.0 | +27% |
+| 10 | ANET | Arista Networks | 84.2 | +38% |
+| 14 | POWL | Powell Industries | 83.5 | +59% |
+| 16 | TDW | Tidewater | 83.4 | −20% |
+
+Median +19.5% against a universe median of +8.8% — an excess of +10.7 points,
+with 15 of 20 positive. One quarter, so read it as an illustration and not as
+evidence.
