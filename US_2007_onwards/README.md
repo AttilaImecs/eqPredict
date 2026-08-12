@@ -717,3 +717,70 @@ identifies a good cohort but cannot order within it.
 Health Care is the weak spot and it is a large share of the picks — the
 net-cash biotechs that max the health pillar. Half of them underperform. Worth
 either a sector cap or extra scrutiny before acting on a Health Care pick.
+
+---
+
+## The Health Care check — mostly an era, but not only
+
+113 of 600 top-20 picks are Health Care, winning 48% against 64-74% for every
+other large sector. Two explanations were on the table: a bad cohort, or the
+rubric over-rewarding a fortress balance sheet in a sector where the balance
+sheet does not decide the outcome. **The evidence supports both, in that order.**
+
+### It is concentrated in 2018-2020, and has since disappeared
+
+| era | HC n | HC win% | HC excess | other n | other win% | other excess |
+|---|---|---|---|---|---|---|
+| 2018-2019 | 40 | 45% | −6.7 | 119 | 56% | +5.1 |
+| **2020** | 29 | **17%** | **−41.5** | 51 | 41% | −12.2 |
+| 2021-2022 | 26 | **69%** | +13.8 | 129 | 71% | +17.7 |
+| 2023-2025 | 18 | **72%** | +13.9 | 181 | 72% | +21.7 |
+
+**Since 2021 Health Care picks win at the same rate as everything else** (69%
+and 72% against 71% and 72%). The entire deficit comes from 2018-2020, and
+overwhelmingly from 2020, where they won 17% of the time and lost 41.5 points —
+biotech sat out a rebound led by beaten-down cyclicals. That is the same
+regime effect that drives every other failure in this study, landing hardest
+on the sector most exposed to it.
+
+Median excess is still lower post-2021 (+13.9 vs +21.7), so they win as often
+but by less.
+
+### The tails point the wrong way
+
+| | p10 | median | p90 | moves >50 pts |
+|---|---|---|---|---|
+| Health Care | **−56.6** | −3.0 | +37.9 | **7 wins, 15 losses** |
+| everything else | −26.6 | +13.8 | +69.0 | **85 wins, 9 losses** |
+
+Both groups have ~20% large moves, so Health Care is not *more* binary. The
+asymmetry is the difference: elsewhere big moves are wins 90% of the time,
+in Health Care they are losses 68% of the time. Capped upside, uncapped
+downside — the shape of a binary-outcome sector.
+
+### The rubric issue is real, and specific
+
+Within Health Care, a maxed health pillar goes with WORSE outcomes:
+
+| health pillar | HC n | HC win% | HC excess | | control n | control win% |
+|---|---|---|---|---|---|---|
+| <18 | 25 | **60%** | **+10.1** | | 118 | 69% |
+| 18-19.5 | 15 | 20% | −27.0 | | 66 | 64% |
+| 19.5-20 (max) | 73 | **49%** | **−2.7** | | 256 | 62% |
+
+The control shows no gradient at all (69/64/62). **In Health Care specifically,
+scoring 20/20 on the balance sheet predicts underperformance** — a biotech with
+five years of cash and no product still fails if the trial fails. Cash buys
+time, not outcomes.
+
+A second mechanism compounds it: median profitability pillar is **19.1 in
+Health Care against 18.2 elsewhere**. Peer-relative scoring in a sector where
+most peers lose money makes a marginally profitable biotech look outstanding.
+
+### Deliberately not acting on this yet
+
+The era effect dominates and the sub-buckets are small (n=15 in one). Capping
+Health Care, or discounting the health pillar for it, would be fitting the
+rubric to 2018-2020 — the same mistake as tuning valuation bands to one rate
+environment. Worth revisiting if the pattern persists over further quarters;
+not worth a change on this evidence.
