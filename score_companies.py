@@ -151,9 +151,27 @@ PILLARS = ["growth", "profitability", "quality", "health", "valuation", "momentu
 # business -- deposits, policy reserves and repo funding are not borrowings in
 # the sense debt/equity assumes, and a 10x ratio is ordinary rather than
 # distressed. Scoring them on it would penalise the whole sector for existing.
-# The health pillar is DROPPED for these and the total renormalised over the
-# other five, with `leverage_not_applicable` flagged so it is never mistaken
-# for a clean bill of health.
+#
+# THE PILLAR IS NO LONGER DROPPED. It was, and that turned out to be a free
+# pass rather than neutrality: score_one renormalises over the pillars that
+# scored, so a bank was ranked on five hurdles while everyone else cleared six.
+# Pooled over 33 quarters that put Financials at 1.40x their universe share in
+# the top 100, and all 34 Financials in the Q2-2026 top 100 carried the flag.
+# Dropping a hurdle cannot be neutral when the ranking is against companies
+# that had to clear it.
+#
+# Instead banks are scored on the one balance-sheet measure that IS meaningful
+# for them -- equity/assets, the regulatory leverage ratio in all but name --
+# ranked WITHIN the sector, then placed on the same 0-20 health scale everyone
+# else lands on (see BANK_HEALTH_BANDS). A median bank scores what a median
+# company scores; a thinly capitalised one scores badly. The sector is neither
+# rewarded nor punished, and banks are still told apart from each other.
+#
+# HONEST LIMIT: this cannot be validated the way the other health rules were.
+# Survival AUC needs failures, and in 2018-2026 only 6 Financials in this
+# universe stopped filing against 3594 that did not -- the window contains no
+# banking crisis. equity/assets is used because it is the correct measure of
+# bank solvency, not because it was measured to predict one here.
 LEVERAGE_EXEMPT = ("Financials",)
 
 # --------------------------------------------------------------------------
@@ -249,8 +267,46 @@ DEFAULTS = {
         "P3_gross_margin_vs_peers": 3,
         "V1_pe_vs_peers": 6, "V2_ps_vs_peers": 5,
     },
+    # Earnings quality. `ladder` maps net-minus-EBIT margin gap (in percentage
+    # points, descending) to the multiplier applied to the net-margin rules;
+    # the first threshold met wins. `flag_at` raises earnings_below_op_line,
+    # which the caps below then bind. See `eq_multiplier` and `m["eq_gap"]`.
+    #
+    # Adjustable like everything else: in a period when one-off gains are
+    # widespread and genuinely repeatable -- a tax-law change, say -- raise the
+    # thresholds rather than editing code.
+    "earnings_quality": {"ladder": [[30, 0.50], [10, 0.75]], "flag_at": 30},
+    # Bank health. [within-sector percentile on equity/assets, points out of 20].
+    #
+    # These are not invented thresholds. They are calibrated so the health
+    # scores of banks that actually get ranked reproduce the observed health
+    # distribution of the 64,705 non-bank company-quarters they are ranked
+    # against -- the median ranked bank lands on the median company's health
+    # score. That equivalence is the point: it makes the pillar mean the same
+    # thing for a bank as for anyone else, so the renormalisation free pass
+    # disappears without inventing a penalty.
+    #
+    # WHY THE CURVE IS NOT A STRAIGHT PERCENTILE MAP. Banks that clear the
+    # confidence gate are not a uniform sample of banks -- the median one sits
+    # at the 71.7th percentile of bank capital, not the 50th, because thin
+    # balance sheets and thin disclosure travel together. Mapping percentile
+    # straight onto the reference curve therefore handed the median ranked
+    # bank a 17.1 where the companies beside it averaged 14.9, and pushed
+    # Financials to 1.81x their universe share in the top 100 -- worse than
+    # the 1.40x defect it replaced. This curve is the corrected one.
+    #
+    # Recalibrate if the health rules are reweighted or the confidence gate
+    # moves: the curve is a photograph of both, so changing either dates it.
+    "bank_health_bands": [[95, 20.0], [90, 19.6], [85, 18.2], [80, 17.1],
+                          [75, 15.6], [70, 14.3], [65, 13.1], [60, 12.3],
+                          [55, 12.0], [50, 11.6], [45, 11.3], [40, 10.9],
+                          [35, 10.7], [30, 10.1], [25, 9.7], [20, 8.7],
+                          [15, 8.2], [10, 6.7], [5, 3.7], [0, 0.0]],
     # Conditions that cap the total no matter how the pillars scored.
-    "caps": {"chronic_losses": 45.0, "illiquid": 50.0, "revenue_collapse": 55.0},
+    "caps": {"chronic_losses": 45.0, "illiquid": 50.0, "revenue_collapse": 55.0,
+             # 70 leaves room to be a good company, not a top pick, while the
+             # profit is arriving from below the operating line.
+             "earnings_below_op_line": 70.0},
     "score_bands": [[80, "Strong"], [65, "Above average"], [50, "Average"],
                     [35, "Below average"], [0, "Weak"]],
 }
@@ -302,6 +358,39 @@ def band_low(value, table):
         if value <= hi:
             return pts
     return 0.0
+
+
+def eq_multiplier(m, cfg):
+    """Earnings-quality multiplier for the net-margin rules. 1.0 = no discount.
+
+    Graduated rather than a cliff because the underlying effect is graduated:
+    a +5 to +20 gap already returned a median -7.2% against +3.7% for the
+    normal range, so a single threshold at +30 would let the milder half
+    through untouched.
+
+    A missing operating margin means the gap cannot be computed at all, and an
+    uncomputable test must not become a silent penalty -- those return 1.0 and
+    are scored as before.
+    """
+    gap = m.get("eq_gap")
+    if gap is None:
+        return 1.0
+    for lo, mul in cfg["earnings_quality"]["ladder"]:
+        if gap >= lo:
+            return mul
+    return 1.0
+
+
+def mute(rule, mul):
+    """Scale a rule's EARNED points, leaving its maximum intact.
+
+    The maximum must not move. score_one sums earned over available and
+    renormalises, so scaling both halves would cancel exactly and the discount
+    would silently do nothing -- the rule would look applied and change no
+    score. Only the numerator is touched.
+    """
+    pts, mx = rule
+    return (pts if pts is None else round(pts * mul, 3), mx)
 
 
 # --------------------------------------------------------------------------
@@ -527,6 +616,28 @@ def compute(t, qs, snap, px, dv, pe_hist, mc_hist, as_of=None, ppy=4):
     m["net_margin"] = ni0 / rev0 * 100 if rev0 and rev0 > 0 and ni0 is not None else None
     m["ebit_margin"] = ebit0 / rev0 * 100 if rev0 and rev0 > 0 and ebit0 is not None else None
     m["gross_margin"] = gp0 / rev0 * 100 if rev0 and rev0 > 0 and gp0 is not None else None
+
+    # Earnings quality: how far net margin sits ABOVE operating margin.
+    #
+    # Operating income is what the business earns from doing what it does. Net
+    # income adds everything below that line -- tax-valuation-allowance
+    # releases, investment and fair-value gains, one-off milestone and
+    # settlement payments. When net margin runs far above EBIT margin, most of
+    # the reported profit did not come from operations and will not recur, yet
+    # every margin rule reads it as ongoing.
+    #
+    # Measured on 30 point-in-time quarters, companies with a gap above +20
+    # returned a median -19.4% over the next 12 months against +3.7% for the
+    # normal range, and did worse in 29 of 29 quarters -- the only thing in
+    # this study that was 100% directional.
+    #
+    # ONE-SIDED ON PURPOSE. The mirror case (net margin far BELOW EBIT margin:
+    # heavy interest, non-operating losses) tested roughly neutral -- +2.0%
+    # median, 52% positive, against +10.1%/61% for clean names -- so it is not
+    # muted. Only the flattering direction is.
+    m["eq_gap"] = (m["net_margin"] - m["ebit_margin"]
+                   if m["net_margin"] is not None and m["ebit_margin"] is not None
+                   else None)
 
     # margin trend in percentage points across the window
     m["margin_delta"] = None
@@ -789,13 +900,22 @@ def rules_profitability(m, ctx):
     loses money, the least-bad loss-maker still ranks in the 90th percentile.
     """
     B = ctx.cfg["bands"]
+    # Only the two net-margin rules are muted. P2 reads operating margin and P3
+    # gross margin -- both sit above the line the problem lives below, so both
+    # are already clean and are left alone. That also means a company muted
+    # here keeps 7 of the 20 profitability points on undisputed operating
+    # numbers, which is the intent: this discounts the flattered part of the
+    # picture, it does not erase the company.
+    mul = eq_multiplier(m, ctx.cfg)
+    p1 = ctx.peer_points(m, "net_margin", "P1_net_margin_vs_peers")
+    p4 = (band(m["net_margin"], B["P4_net_margin_absolute"]), 4)
     return {
-        "P1_net_margin_vs_peers":   ctx.peer_points(m, "net_margin", "P1_net_margin_vs_peers"),
+        "P1_net_margin_vs_peers":   mute(p1, mul),
         "P2_ebit_margin_vs_peers":  ctx.peer_points(m, "ebit_margin", "P2_ebit_margin_vs_peers"),
         "P3_gross_margin_vs_peers": ctx.peer_points(m, "gross_margin", "P3_gross_margin_vs_peers"),
         # Absolute floor -- sector-neutral, and the guard against the "best of
         # a uniformly unprofitable industry" failure mode above.
-        "P4_net_margin_absolute":   (band(m["net_margin"], B["P4_net_margin_absolute"]), 4),
+        "P4_net_margin_absolute":   mute(p4, mul),
         "P5_profitable_quarters":   (band(m["profitable_q"], B["P5_profitable_quarters"]), 3),
     }
 
@@ -837,14 +957,12 @@ def rules_health(m, ctx):
     Dropped for the same reason: return on equity (0.562), which was carrying
     2 points on no evidence.
 
-    Still dropped entirely for banks and insurers -- see LEVERAGE_EXEMPT.
+    Banks and insurers get a different rule, not an exemption -- see
+    LEVERAGE_EXEMPT and rules_health_bank.
     """
     B = ctx.cfg["bands"]
     if (m.get("_sector") or "") in LEVERAGE_EXEMPT:
-        return {k: (None, mx) for k, mx in
-                (("H1_net_debt_to_ebitda", 4), ("H2_interest_coverage", 3),
-                 ("H3_current_ratio", 4), ("H4_equity_ratio", 5),
-                 ("H5_cash_runway", 2), ("H6_size_floor", 2))}
+        return rules_health_bank(m, ctx)
     return {
         "H1_net_debt_to_ebitda": (band_low(m["net_debt_to_ebitda"], B["H1_net_debt_to_ebitda"]), 4),
         "H2_interest_coverage":  (band(m["interest_coverage"], B["H2_interest_coverage"]), 3),
@@ -857,6 +975,32 @@ def rules_health(m, ctx):
         # only the genuinely tiny, where survival risk is concentrated.
         "H6_size_floor":         (band(m["revenue_size"], B["H6_size_floor"]), 2),
     }
+
+
+def rules_health_bank(m, ctx):
+    """Health for banks and insurers: capital adequacy, ranked among peers.
+
+    One rule carrying the whole 20, because a bank has exactly one
+    balance-sheet question that means anything here -- is it capitalised --
+    and padding it out with rules that do not apply (current ratio, net debt
+    to EBITDA, interest coverage, where interest is REVENUE) would dilute the
+    only real signal with noise.
+
+    The percentile is taken within LEVERAGE_EXEMPT companies alone. Bank
+    equity/assets runs at a median of 0.22 against 0.43 for everyone else, so
+    ranking a bank against the whole universe on the absolute bands would put
+    almost every one of them in the bottom band -- which is the error the old
+    exemption was written to avoid, and it remains an error.
+
+    Missing equity/assets returns None, which drops the pillar and renormalises
+    exactly as before. That is the old free pass, now confined to the ~4% of
+    bank-quarters with no usable balance sheet rather than applied to all.
+    """
+    pct = ctx.pctile(m, "equity_ratio", pool=LEVERAGE_EXEMPT)
+    if pct is None:
+        return {"HB1_capital_vs_peers": (None, 20)}
+    return {"HB1_capital_vs_peers":
+            (band(pct, ctx.cfg["bank_health_bands"]), 20)}
 
 
 def rules_valuation(m, ctx):
@@ -933,8 +1077,13 @@ class PeerContext:
 
     # Margins: higher is better. Multiples: LOWER is better, so their
     # percentile is inverted at query time.
-    PEER_METRICS = ("net_margin", "ebit_margin", "gross_margin", "pe", "ps")
+    PEER_METRICS = ("net_margin", "ebit_margin", "gross_margin", "pe", "ps",
+                    "equity_ratio")
     LOWER_IS_BETTER = ("pe", "ps")
+    # Banks and insurers are pooled into one distribution under this key rather
+    # than ranked sector by sector -- an insurer's capital ratio is comparable
+    # to a bank's, and splitting them would leave each pool thin.
+    EXEMPT_POOL = "__EXEMPT__"
 
     def __init__(self, metrics_by_ticker, sector_of, cfg):
         self.cfg = cfg
@@ -951,6 +1100,8 @@ class PeerContext:
                     continue
                 self.dists[(sec, key)].append(v)
                 self.dists[("__ALL__", key)].append(v)
+                if sec in LEVERAGE_EXEMPT:
+                    self.dists[(self.EXEMPT_POOL, key)].append(v)
         for k in self.dists:
             self.dists[k].sort()
 
@@ -960,15 +1111,28 @@ class PeerContext:
             vals = self.dists.get(("__ALL__", key), [])
         return vals
 
-    def pctile(self, m, key):
+    def pctile(self, m, key, pool=None):
         """Where this company sits among peers, 0-100, already oriented so
-        that HIGHER always means better."""
+        that HIGHER always means better.
+
+        `pool` overrides the sector pool with the pooled LEVERAGE_EXEMPT
+        distribution. It deliberately does NOT fall back to the whole universe
+        the way _pool does: ranking a bank's 0.22 equity/assets against a
+        universe whose median is 0.43 puts nearly every bank in the bottom
+        band, which is the exact error the exemption existed to prevent. If the
+        pool is too thin the rule is dropped instead.
+        """
         v = m.get(key)
         if v is None:
             return None
         if key in self.LOWER_IS_BETTER and v <= 0:
             return None
-        vals = self._pool(m.get("_sector") or "", key)
+        if pool is not None:
+            vals = self.dists.get((self.EXEMPT_POOL, key), [])
+            if len(vals) < self.cfg["min_peers"]:
+                return None
+        else:
+            vals = self._pool(m.get("_sector") or "", key)
         if not vals:
             return None
         lo = bisect.bisect_left(vals, v)
@@ -992,7 +1156,7 @@ class PeerContext:
         return (0.0, mx)
 
 
-def flags(m, pillars):
+def flags(m, pillars, cfg=DEFAULTS):
     """Conditions a points total can hide.  Some cap the score outright."""
     f = []
     if m["profitable_q"] == 0 and m["window_q"] >= 8:
@@ -1017,6 +1181,9 @@ def flags(m, pillars):
         f.append("negative_equity")
     if m.get("non_usd"):
         f.append("non_usd_reporting")
+    if (m.get("eq_gap") is not None
+            and m["eq_gap"] >= cfg["earnings_quality"]["flag_at"]):
+        f.append("earnings_below_op_line")
     if m.get("net_debt_to_ebitda") is not None and m["net_debt_to_ebitda"] > 5:
         f.append("high_leverage")
     if (m.get("interest_coverage") is not None and m["interest_coverage"] < 1.5
@@ -1053,7 +1220,7 @@ def score_one(m, ctx):
     have = sum(1 for v in detail.values() if v is not None)
     confidence = have / len(detail)
 
-    fl = flags(m, pillar_scores)
+    fl = flags(m, pillar_scores, cfg)
     for f in fl:
         if f in cfg["caps"]:
             total = min(total, cfg["caps"][f])
@@ -1167,7 +1334,7 @@ def main():
             "flags": "|".join(fl),
             **{k: (round(m[k], 2) if isinstance(m.get(k), float) else m.get(k, ""))
                for k in ["rev_cagr", "rev_yoy", "eps_cagr", "net_margin",
-                         "ebit_margin", "gross_margin", "margin_delta",
+                         "ebit_margin", "eq_gap", "gross_margin", "margin_delta",
                          "profitable_q", "growth_sd", "share_change", "pe", "ps",
                          "peg", "pe_vs_own", "ret_12m", "ret_6m", "drawdown",
                          "volatility", "dollar_volume", "market_cap",
@@ -1219,8 +1386,17 @@ def main():
         if name_counts[base] > 1:
             r["flags"] = "|".join(filter(None, [r["flags"], "dual_class"]))
 
+    # Not rows[0].keys(). Banks carry HB1_capital_vs_peers where everyone else
+    # carries H1..H6, so whichever company happens to sort first would decide
+    # the header and DictWriter would raise on the first row of the other kind.
+    # First-seen order across all rows keeps the layout stable and complete.
+    fieldnames = list(dict.fromkeys(k for r in rows for k in r))
+    for r in rows:
+        for k in fieldnames:
+            r.setdefault(k, "")
+
     with open(args.out, "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
+        w = csv.DictWriter(fh, fieldnames=fieldnames)
         w.writeheader()
         for r in rows:
             w.writerow({k: ("" if v is None else v) for k, v in r.items()})

@@ -302,18 +302,75 @@ class TestHealth(unittest.TestCase):
         b.update(kw)
         return b
 
-    def test_banks_are_exempt_from_leverage(self):
-        """Deposits are not borrowings. A 10x debt/equity is ordinary for a
-        bank, so scoring it would penalise the entire sector for existing --
-        the pillar is dropped and flagged instead."""
-        r = sc.rules_health(self.m(_sector="Financials", net_debt_to_ebitda=8.0,
-                                   debt_to_equity=10.0), self.ctx)
-        self.assertTrue(all(v is None for v, _ in r.values()))
-        flags = sc.flags(self.m(_sector="Financials"), {})
-        self.assertIn("leverage_not_applicable", flags)
+    def bank_ctx(self, n=60):
+        """A peer context with enough Financials to form a capital pool."""
+        metrics = {"B%d" % i: {"_sector": "Financials",
+                               "equity_ratio": 0.05 + i * 0.01}
+                   for i in range(n)}
+        return sc.PeerContext(metrics, {t: "Financials" for t in metrics},
+                              sc.DEFAULTS)
 
-    def test_bank_total_renormalises_over_five_pillars(self):
-        """Dropping health must not lower a bank's score."""
+    def test_banks_are_not_scored_on_leverage(self):
+        """Deposits are not borrowings. A 10x debt/equity is ordinary for a
+        bank, so the ordinary leverage rules must not touch it."""
+        r = sc.rules_health(self.m(_sector="Financials", net_debt_to_ebitda=8.0,
+                                   debt_to_equity=10.0, equity_ratio=0.30),
+                            self.bank_ctx())
+        self.assertNotIn("H1_net_debt_to_ebitda", r)
+        self.assertIn("leverage_not_applicable",
+                      sc.flags(self.m(_sector="Financials"), {}))
+
+    def test_bank_health_pillar_still_totals_twenty(self):
+        r = sc.rules_health(self.m(_sector="Financials", equity_ratio=0.30),
+                            self.bank_ctx())
+        self.assertAlmostEqual(sum(mx for _, mx in r.values()), 20.0)
+
+    def test_bank_capital_is_ranked_among_banks(self):
+        """A well-capitalised bank must outscore a thin one. Scored on the
+        absolute bands instead, both would sit in the bottom band -- bank
+        equity/assets runs at a median of 0.22 against 0.43 elsewhere."""
+        ctx = self.bank_ctx()
+        thin = sc.rules_health(self.m(_sector="Financials", equity_ratio=0.06),
+                               ctx)["HB1_capital_vs_peers"][0]
+        strong = sc.rules_health(self.m(_sector="Financials", equity_ratio=0.60),
+                                 ctx)["HB1_capital_vs_peers"][0]
+        self.assertGreater(strong, thin)
+
+    def test_median_bank_scores_what_a_median_company_scores(self):
+        """THE FIX. The old code dropped the pillar and renormalised, so a bank
+        was ranked on five hurdles while everyone else cleared six -- worth
+        1.40x their universe share in the top 100 across 33 quarters.
+
+        The bands are the observed health distribution of companies that ARE
+        scored on it, so a bank at the 50th percentile of bank capital must
+        land on the 50th-percentile health score. That equivalence is what
+        makes the pillar mean the same thing for both.
+        """
+        ctx = self.bank_ctx()
+        mid = sc.rules_health(self.m(_sector="Financials", equity_ratio=0.35),
+                              ctx)["HB1_capital_vs_peers"][0]
+        self.assertAlmostEqual(mid, 11.6, places=6)
+
+    def test_thin_bank_pool_drops_rather_than_ranking_against_everyone(self):
+        """Falling back to the universe pool would put nearly every bank in the
+        bottom band -- the exact error the exemption existed to prevent."""
+        ctx = sc.PeerContext({"A": {"_sector": "Financials", "equity_ratio": 0.1}},
+                             {"A": "Financials"}, sc.DEFAULTS)
+        r = sc.rules_health(self.m(_sector="Financials", equity_ratio=0.10), ctx)
+        self.assertIsNone(r["HB1_capital_vs_peers"][0])
+
+    def test_bank_without_a_balance_sheet_drops_the_pillar(self):
+        r = sc.rules_health(self.m(_sector="Financials", equity_ratio=None),
+                            self.bank_ctx())
+        self.assertIsNone(r["HB1_capital_vs_peers"][0])
+
+    def test_bank_with_no_capital_data_still_scores(self):
+        """The renormalisation path still has to work -- it is now the fallback
+        for a bank with no usable balance sheet (~4% of bank-quarters) rather
+        than the treatment for every bank. Renaming matters: this test used to
+        be called test_bank_total_renormalises_over_five_pillars and assert
+        that dropping health 'must not lower a bank's score', which was the
+        defect stated as a requirement."""
         bank = self.m(_sector="Financials", net_margin=20.0, profitable_q=12,
                       rev_cagr=8.0, ret_12m=10.0, pos_ttm=3, pos_ttm_known=3)
         total, pillars, _, _, _ = sc.score_one(bank, self.ctx)
@@ -322,8 +379,16 @@ class TestHealth(unittest.TestCase):
         self.assertLessEqual(total, 100.0)
 
     def test_net_cash_scores_top_band(self):
+        """A company owing less than it holds is not levered at all.
+
+        Asserted against the band table rather than a literal: this test
+        hardcoded 6 and went stale when the health pillar was reweighted
+        against measured survival AUC and H1's maximum moved to 4. What the
+        test means is "net cash earns the top band", which is true at any
+        weighting."""
+        top = sc.DEFAULTS["bands"]["H1_net_debt_to_ebitda"][0][1]
         r = sc.rules_health(self.m(net_debt_to_ebitda=-1.5), self.ctx)
-        self.assertEqual(r["H1_net_debt_to_ebitda"][0], 6)
+        self.assertEqual(r["H1_net_debt_to_ebitda"][0], top)
 
     def test_leverage_bands_are_monotonic(self):
         prev = None
@@ -414,9 +479,16 @@ class TestCurrencyGate(unittest.TestCase):
 
 class TestConfig(unittest.TestCase):
     def test_deep_merge_leaves_siblings_alone(self):
+        """Overriding one weight must not drop its siblings.
+
+        The sibling is compared against DEFAULTS rather than a literal 20.0,
+        which is what made this test fail when the growth weight was halved
+        after growth failed both the return and survival tests. The merge
+        behaviour under test never changed."""
         cfg = sc.deep_merge(sc.DEFAULTS, {"pillar_weights": {"valuation": 30.0}})
         self.assertEqual(cfg["pillar_weights"]["valuation"], 30.0)
-        self.assertEqual(cfg["pillar_weights"]["growth"], 20.0)
+        self.assertEqual(cfg["pillar_weights"]["growth"],
+                         sc.DEFAULTS["pillar_weights"]["growth"])
         self.assertIn("bands", cfg)
 
     def test_defaults_not_mutated(self):
@@ -452,6 +524,129 @@ class TestTTM(unittest.TestCase):
         rows = [{"revenue": "1"}] * 4 + [{"revenue": "2"}] * 4
         self.assertEqual(sc.ttm(rows, "revenue"), 8.0)
         self.assertEqual(sc.ttm(rows, "revenue", 4), 4.0)
+
+
+class TestEarningsQuality(unittest.TestCase):
+    """The net-minus-EBIT margin gate.
+
+    Aurinia scored 86.4 and reached rank 4 on a 100.8% net margin against a
+    48.4% operating margin -- a +52.5 point gap, meaning most of the reported
+    profit arrived below the operating line and will not recur. Innoviva
+    (+44.2) and Cronos (+40.4) reached the top 25 the same way.
+
+    Measured across 30 point-in-time quarters, a gap above +20 returned a
+    median -19.4% over the next 12 months against +3.7% for the normal range,
+    and was worse in 29 of 29 quarters.
+    """
+
+    def setUp(self):
+        self.ctx = sc.PeerContext({}, {}, sc.DEFAULTS)
+
+    def m(self, **kw):
+        b = Blank(_sector="X", pos_ttm=0, pos_ttm_known=0)
+        b.update(kw)
+        return b
+
+    def test_ladder_thresholds(self):
+        for gap, want in [(None, 1.0), (0, 1.0), (9.9, 1.0),
+                          (10, 0.75), (29.9, 0.75),
+                          (30, 0.50), (52.5, 0.50), (500, 0.50)]:
+            self.assertEqual(sc.eq_multiplier(self.m(eq_gap=gap), sc.DEFAULTS),
+                             want, "gap=%s" % gap)
+
+    def test_gate_is_one_sided(self):
+        """Net margin far BELOW operating margin tested roughly neutral --
+        +2.0% median, 52% positive, against +10.1%/61% for clean names. Muting
+        it would penalise ordinary interest and tax burden for no measured
+        reason."""
+        for gap in (-10, -25, -60):
+            self.assertEqual(sc.eq_multiplier(self.m(eq_gap=gap), sc.DEFAULTS), 1.0)
+
+    def test_missing_operating_margin_is_not_a_penalty(self):
+        """Healthcare Services Group has no EBIT margin in the data. An
+        uncomputable test must not become a silent discount."""
+        self.assertEqual(sc.eq_multiplier(self.m(net_margin=6.6, ebit_margin=None,
+                                                 eq_gap=None), sc.DEFAULTS), 1.0)
+
+    def test_mute_leaves_the_maximum_alone(self):
+        """THE BUG THIS GATE WOULD DIE OF.
+
+        score_one sums earned points over available points and renormalises.
+        Scaling both halves cancels exactly -- the discount would appear to be
+        applied, every rule would look muted, and no score would move.
+        """
+        pts, mx = sc.mute((4.0, 4), 0.5)
+        self.assertEqual((pts, mx), (2.0, 4))
+        self.assertEqual(sc.mute((None, 6), 0.5), (None, 6))
+
+    def test_only_net_margin_rules_are_muted(self):
+        """Operating and gross margin sit above the line the problem lives
+        below, so both stay untouched -- a muted company keeps 7 of the 20
+        profitability points on undisputed operating numbers."""
+        metrics = {"C%d" % i: {"_sector": "X", "net_margin": float(i),
+                               "ebit_margin": float(i), "gross_margin": float(i)}
+                   for i in range(40)}
+        ctx = sc.PeerContext(metrics, {t: "X" for t in metrics}, sc.DEFAULTS)
+        base = dict(_sector="X", net_margin=39.0, ebit_margin=39.0,
+                    gross_margin=39.0, profitable_q=12)
+        clean = sc.rules_profitability(self.m(eq_gap=0, **base), ctx)
+        muted = sc.rules_profitability(self.m(eq_gap=52.5, **base), ctx)
+        self.assertEqual(muted["P1_net_margin_vs_peers"][0],
+                         clean["P1_net_margin_vs_peers"][0] * 0.5)
+        self.assertEqual(muted["P4_net_margin_absolute"][0],
+                         clean["P4_net_margin_absolute"][0] * 0.5)
+        for untouched in ("P2_ebit_margin_vs_peers", "P3_gross_margin_vs_peers",
+                          "P5_profitable_quarters"):
+            self.assertEqual(muted[untouched], clean[untouched], untouched)
+
+    def test_muting_actually_lowers_the_pillar(self):
+        """End to end, not just at the rule. A discount that does not move the
+        pillar score is decoration."""
+        base = dict(_sector="X", net_margin=40.0, ebit_margin=40.0,
+                    gross_margin=40.0, profitable_q=12)
+        hi = sc.score_one(self.m(eq_gap=0, **base), self.ctx)[1]["profitability"]
+        mid = sc.score_one(self.m(eq_gap=15, **base), self.ctx)[1]["profitability"]
+        lo = sc.score_one(self.m(eq_gap=52.5, **base), self.ctx)[1]["profitability"]
+        self.assertLess(mid, hi)
+        self.assertLess(lo, mid)
+
+    def test_flag_raised_at_threshold_only(self):
+        self.assertIn("earnings_below_op_line",
+                      sc.flags(self.m(eq_gap=30.0), {}, sc.DEFAULTS))
+        self.assertNotIn("earnings_below_op_line",
+                         sc.flags(self.m(eq_gap=29.9), {}, sc.DEFAULTS))
+        self.assertNotIn("earnings_below_op_line",
+                         sc.flags(self.m(eq_gap=None), {}, sc.DEFAULTS))
+
+    def test_cap_binds_the_total(self):
+        """Aurinia at 86.4 must not survive the gate near the top of the list.
+
+        Asserting only `total <= cap` would pass even with the cap raised to
+        100 -- a mutation that removes the cap entirely and leaves the test
+        green. So this pins BOTH ends: the same company scores above the cap
+        untouched, and lands exactly on it once flagged.
+        """
+        cap = sc.DEFAULTS["caps"]["earnings_below_op_line"]
+        base = dict(_sector="X", net_margin=100.8, ebit_margin=48.4,
+                    profitable_q=12, gross_margin=90.0, rev_cagr=20.0,
+                    ret_12m=50.0, current_ratio=3.0, equity_ratio=0.7)
+        uncapped = sc.score_one(self.m(eq_gap=0.0, **base), self.ctx)[0]
+        self.assertGreater(uncapped, cap,
+                           "fixture no longer scores above the cap; it cannot "
+                           "demonstrate that the cap does anything")
+        total, _, _, _, fl = sc.score_one(self.m(eq_gap=52.4, **base), self.ctx)
+        self.assertIn("earnings_below_op_line", fl)
+        self.assertAlmostEqual(total, cap, places=6)
+
+    def test_ladder_is_configurable(self):
+        """Standing requirement: the rubric adjusts as conditions change,
+        without editing code."""
+        cfg = sc.deep_merge(sc.DEFAULTS,
+                            {"earnings_quality": {"ladder": [[80, 0.9]], "flag_at": 80}})
+        self.assertEqual(sc.eq_multiplier(self.m(eq_gap=52.5), cfg), 1.0)
+        self.assertEqual(sc.eq_multiplier(self.m(eq_gap=90), cfg), 0.9)
+        self.assertNotIn("earnings_below_op_line",
+                         sc.flags(self.m(eq_gap=52.5), {}, cfg))
 
 
 if __name__ == "__main__":

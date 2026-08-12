@@ -350,15 +350,23 @@ def main():
   The survival columns do NOT share this limit: they are computed from who
   filed, which is known for the companies that vanished.
 
-  ONE REGIME. 2021-2026. Nothing here has been tested through a credit event
-  or a prolonged bear market.
+  ONE REGIME. 2018-2026. Nothing here has been tested through a credit event
+  or a prolonged bear market. That bound is sharpest for the bank rule: only
+  6 Financials in this universe stopped filing against 3,594 that did not, so
+  HB1_capital_vs_peers is scored on the correct measure of bank solvency but
+  has never been validated against one failing.
 
-  2021 WINDOWS ARE THIN, NOT WEAK. DERA archives begin 2021q1, so early
-  windows score 2,057 companies against 4,600+ later, on one to four quarters
-  of history.
+  EARLY WINDOWS ARE THIN, NOT WEAK. 2018q1 scores 2,145 companies against
+  4,600+ later, on one to four quarters of history.
 
   market_cap_est IS DERIVED, from implied share count x price -- DERA carries
   no share count. Valuation rules inherit that.
+
+  THE EARNINGS-QUALITY GATE WAS FITTED HERE. Its thresholds were chosen on
+  these same windows, so any improvement measured on them is optimistic. What
+  is not in-sample is the direction: flagged companies did worse in 29 of 29
+  quarters, and the names it removes from a top-N list have underperformed
+  the names replacing them at every depth tested.
 
   NOT INVESTMENT ADVICE. A ranking of reported history, not a forecast.""")
 
