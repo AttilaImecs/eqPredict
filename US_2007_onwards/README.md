@@ -536,3 +536,72 @@ Still only survivors are priced, so the loser-avoidance claim is still
 unverified on returns. It IS now supported on survival — v2 separates
 companies that disappear from companies that do not at AUC 0.79 — which is
 the closest thing to a test that free data allows.
+
+---
+
+## EXTENDED TO 2018 Q1 — and the result is a correction, not a confirmation
+
+33 point-in-time windows (2018q1-2026q1), 267,950 fundamental rows across
+11,576 CIKs, prices from 2017-01. The motivation was one question: **does the
+score survive a real drawdown?**
+
+### Adding 2018-2020 LOWERED the measured signal substantially
+
+| block | 21 windows (2021+) | 33 windows (2018+) |
+|---|---|---|
+| W+0 → W+9 | +0.204 | **+0.145** |
+| W+0 → W+12 | +0.204 | **+0.150** |
+| W+0 → W+21 | +0.229 | **+0.176** |
+
+**The earlier numbers came from a favourable stretch.** Everything previously
+reported was measured on 2021-2026 and was, on this evidence, roughly 30%
+too high. This is the value of extending the window: it did not confirm the
+result, it corrected it.
+
+### By era — these cannot be pooled
+
+| era | windows | W+0→W+9 | W+0→W+12 |
+|---|---|---|---|
+| 2018-2019 (~55-59% priceable) | 8 | +0.099 | +0.092 |
+| **2020 (COVID year)** | 4 | **−0.151** | **−0.106** |
+| 2021-2022 (~63-66%) | 8 | +0.256 | +0.266 |
+| 2023-2026 (~72-91%) | 11 | +0.220 | +0.225 |
+
+**2020 is negative.** For a whole year the score was not merely useless but
+inverted — high-scored companies underperformed.
+
+### The stress test, quarter by quarter
+
+| quarter from | market | rho | |
+|---|---|---|---|
+| 2018-09 | **−16.8%** | **+0.008** | Q4-2018 selloff |
+| 2019-12 | **−29.4%** | **+0.121** | COVID crash |
+| 2022-03 | −16.3% | +0.238 | rate shock |
+| 2020-03 | +23.6% | **−0.091** | COVID rebound |
+| 2020-09 | +23.3% | **−0.127** | |
+| 2020-12 | +13.6% | **−0.184** | |
+
+Falling quarters mean +0.130, rising +0.068, crash quarters +0.122.
+
+**The drawdown claim is now materially weaker than reported.** Of the three
+genuine crashes, one (+0.238) supported it, one (+0.121) partly did, and one
+(**+0.008, the Q4-2018 selloff**) showed nothing at all. "Works in drawdowns"
+survives as a tendency and dies as a rule.
+
+**The sharp-recovery result is the sharpest new finding.** In the three
+quarters when the market rose 13-24% off the COVID low, rho was **−0.091,
+−0.127 and −0.184** — consistently and substantially negative. The screen does
+not merely lag a violent rebound; it points the wrong way, because the
+companies that rebound hardest are the beaten-down cyclicals it ranks last.
+That is the same mechanism as the "cannot pick winners" finding, now visible as
+a sustained negative rather than an absence of signal.
+
+Market-direction rank correlation is now **−0.379**, continuing to shrink with
+every enlargement of the sample: −0.810 → −0.595 → −0.429 → **−0.379**.
+
+### What this means for using it
+
+The score is a **regime-dependent quality screen**. It works in ordinary and
+falling markets and it works against you in a sharp recovery. Anyone using it
+needs to know which of those they are in — and that is not something the score
+itself can tell them.

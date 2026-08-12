@@ -25,7 +25,7 @@ B = 120
 for i in range(0, len(todo), B):
     chunk = todo[i:i+B]
     try:
-        df = yf.download(chunk, start="2020-01-01", interval="1mo",
+        df = yf.download(chunk, start="2017-01-01", interval="1mo",
                          auto_adjust=False, progress=False, threads=True, group_by="column")
     except Exception as e:
         print("  batch failed: %s" % str(e)[:60], file=sys.stderr); time.sleep(10); continue

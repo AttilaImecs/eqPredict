@@ -267,6 +267,77 @@ def main():
                  statistics.median([b_[1] for b_ in bot]),
                  statistics.median([t[1] for t in top]) - statistics.median([b_[1] for b_ in bot])))
 
+    # ---------- 4b: eras and the crash ----------
+    print("\n" + "=" * 100)
+    print("4b. BY ERA -- these must NOT be pooled")
+    print("=" * 100)
+    print("""  Priceable coverage runs ~55% for 2018 windows against ~91% for 2026. A mean
+  across all of them averages together very different degrees of blindness, so
+  the eras are reported apart.\n""")
+    eras = [("2018q1", "2019q4", "2018-2019   (~55-59% priceable)"),
+            ("2020q1", "2020q4", "2020        (~63%, INCLUDES THE COVID CRASH)"),
+            ("2021q1", "2022q4", "2021-2022   (~63-66%)"),
+            ("2023q1", "2026q1", "2023-2026   (~72-91%)")]
+    print("%-44s %8s %10s %10s %10s" % ("era", "windows", "W+0->W+9", "W+0->W+12", "mean n"))
+    print("-" * 90)
+    for lo, hi, label in eras:
+        for (a, b) in [(0, 9)]:
+            pass
+        line_vals = []
+        for (a, b) in [(0, 9), (0, 12)]:
+            c = cells.get((a, b), [])
+            sel = [x for x in c if lo <= x[0] <= hi]
+            line_vals.append((statistics.fmean([x[1] for x in sel]) if sel else None, len(sel),
+                              statistics.fmean([x[2] for x in sel]) if sel else 0))
+        nwin = max(v[1] for v in line_vals)
+        if not nwin:
+            continue
+        print("%-44s %8d %10s %10s %10.0f"
+              % (label, nwin,
+                 ("%+.3f" % line_vals[0][0]) if line_vals[0][0] is not None else "-",
+                 ("%+.3f" % line_vals[1][0]) if line_vals[1][0] is not None else "-",
+                 max(v[2] for v in line_vals)))
+        rows_csv.append({"section": "era", "era": label, "n_windows": nwin,
+                         "rho_W0_W9": round(line_vals[0][0], 4) if line_vals[0][0] is not None else "",
+                         "rho_W0_W12": round(line_vals[1][0], 4) if line_vals[1][0] is not None else ""})
+
+    print("\n" + "=" * 100)
+    print("4c. THE STRESS TEST -- did the score help when the market actually fell?")
+    print("=" * 100)
+    tri = []
+    for (a, b), c in cells.items():
+        if b - a != 3:
+            continue
+        for q, rho, n, med in c:
+            w = "%s-%s" % (q[:4], QE[q[4:]])
+            tri.append((shift(w, a), rho, n, med))
+    agg = collections.defaultdict(list)
+    for start, rho, n, med in tri:
+        agg[start].append((rho, med))
+    uniq = sorted((k, statistics.fmean([x[0] for x in v]),
+                   statistics.fmean([x[1] for x in v])) for k, v in agg.items())
+    print("%-12s %10s %10s   %s" % ("quarter from", "market", "rho", ""))
+    print("-" * 60)
+    for k, rho, mkt in uniq:
+        tag = ""
+        if mkt <= -12:
+            tag = "  <<< CRASH"
+        elif mkt < 0:
+            tag = "  <- falling"
+        print("%-12s %9.1f%% %+10.3f%s" % (k, mkt, rho, tag))
+    dn = [r for _, r, m in uniq if m < 0]
+    up = [r for _, r, m in uniq if m >= 0]
+    crash = [r for _, r, m in uniq if m <= -12]
+    if dn and up:
+        print()
+        print("  falling quarters (n=%2d): mean rho %+.3f" % (len(dn), statistics.fmean(dn)))
+        print("  rising  quarters (n=%2d): mean rho %+.3f" % (len(up), statistics.fmean(up)))
+        if crash:
+            print("  CRASH quarters  (n=%2d): mean rho %+.3f   <- the previously untested case"
+                  % (len(crash), statistics.fmean(crash)))
+        print("  rank corr(market, rho) = %+.3f" % (spearman([m for _, _, m in uniq],
+                                                             [r for _, r, _ in uniq]) or 0))
+
     # ---------- 5 ----------
     print("\n" + "=" * 100)
     print("5.  WHAT BOUNDS EVERY NUMBER ABOVE")
